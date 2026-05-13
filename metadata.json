@@ -1,0 +1,8 @@
+{
+  "name": "AJ-FIT Fitness OS",
+  "description": "Futuristic Tactical Fitness Dashboard with Neural-Sync Ecosystem. Advanced tracking, AI coaching, and bio-performance metrics.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
