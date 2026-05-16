@@ -40,7 +40,7 @@ export default function CommandSidebar() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full lg:left-0 lg:top-0 lg:h-full lg:w-20 flex flex-row lg:flex-col items-center py-2 lg:py-6 gap-2 lg:gap-6 z-50"
+    <div className="fixed bottom-0 left-0 w-full lg:left-0 lg:top-0 lg:h-full lg:w-24 flex flex-row lg:flex-col items-center py-2 lg:py-6 gap-2 lg:gap-6 z-50"
          style={{
            background: 'rgba(26, 26, 26, 0.9)',
            borderRight: '1px solid rgba(0, 212, 255, 0.15)',
@@ -68,19 +68,23 @@ export default function CommandSidebar() {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="group relative min-w-[3.5rem] w-14 h-14 flex items-center justify-center rounded transition-all duration-200"
+              className="group relative min-w-[4.5rem] lg:w-20 h-16 lg:h-20 flex flex-col items-center justify-center rounded transition-all duration-200 gap-1 lg:gap-1.5 px-1"
               style={{
                 background: isActive ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
                 border: isActive ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid transparent',
               }}
             >
               <Icon
-                className="w-5 h-5 transition-all duration-200"
+                className="w-5 h-5 lg:w-6 lg:h-6 transition-all duration-200"
                 style={{
                   color: isActive ? '#00D4FF' : 'rgba(0, 212, 255, 0.5)',
                   filter: isActive ? 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.6))' : 'none',
                 }}
               />
+              <span className="font-mono text-[8px] lg:text-[9px] text-center uppercase tracking-tighter leading-tight" 
+                    style={{ color: isActive ? '#00D4FF' : 'rgba(0, 212, 255, 0.4)' }}>
+                {item.label}
+              </span>
 
               {/* Tooltip - Desktop only */}
               <div className="hidden lg:group-hover:block absolute left-full ml-4 px-3 py-2 rounded opacity-0 lg:group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50"
@@ -116,17 +120,20 @@ export default function CommandSidebar() {
       <div className="lg:mt-auto border-l lg:border-l-0 lg:border-t border-white/10 pl-2 lg:pl-0 lg:pt-4 mr-2 lg:mr-0">
         <button
           onClick={handleLogout}
-          className="group relative w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded transition-all duration-200 hover:bg-[rgba(255,51,102,0.1)]"
+          className="group relative w-14 h-14 lg:w-20 lg:h-20 flex flex-col items-center justify-center rounded transition-all duration-200 hover:bg-[rgba(255,51,102,0.1)] gap-1 px-1"
           style={{
             border: '1px solid rgba(255, 51, 102, 0.3)',
           }}
         >
           <LogOut
-            className="w-5 h-5 transition-all duration-200"
+            className="w-5 h-5 lg:w-6 lg:h-6 transition-all duration-200"
             style={{
               color: '#FF3366',
             }}
           />
+          <span className="font-mono text-[8px] lg:text-[9px] uppercase tracking-tighter" style={{ color: 'rgba(255, 51, 102, 0.6)' }}>
+            Logout
+          </span>
           {/* Tooltip - Desktop only */}
           <div className="hidden lg:group-hover:block absolute left-full ml-4 px-3 py-2 rounded opacity-0 lg:group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50"
                style={{

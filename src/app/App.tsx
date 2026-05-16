@@ -92,7 +92,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen dark bg-black" style={{ background: '#030303' }}>
       {!isLoginPage && <CommandSidebar />}
-      <div className={isLoginPage ? '' : 'lg:ml-20 pb-20 lg:pb-0'}>
+      <div className={isLoginPage ? '' : 'lg:ml-24 pb-20 lg:pb-0'}>
         {children}
       </div>
     </div>
