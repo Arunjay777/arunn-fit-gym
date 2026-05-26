@@ -1,83 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TacticalHeader from '../components/TacticalHeader';
 import TacticalCard from '../components/TacticalCard';
 import { Calendar, Dumbbell, Clock, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function History() {
   const [expandedWorkout, setExpandedWorkout] = useState<number | null>(null);
+  const [workoutHistory, setWorkoutHistory] = useState<any[]>([]);
 
-  const workoutHistory = [
-    {
-      id: 1,
-      date: 'May 12, 2026',
-      type: 'CHEST DAY',
-      duration: '68 min',
-      volume: 18900,
-      exercises: [
-        { name: 'Barbell Bench Press', sets: 4, reps: [8, 8, 10, 12], weight: 225 },
-        { name: 'Incline Dumbbell Press', sets: 4, reps: [10, 10, 12, 12], weight: 80 },
-        { name: 'Cable Flyes', sets: 3, reps: [12, 15, 15], weight: 45 },
-        { name: 'Dips', sets: 3, reps: [15, 12, 10], weight: 0 },
-      ],
-      color: '#FF3366'
-    },
-    {
-      id: 2,
-      date: 'May 11, 2026',
-      type: 'LEG DAY',
-      duration: '72 min',
-      volume: 21500,
-      exercises: [
-        { name: 'Back Squat', sets: 5, reps: [8, 8, 10, 10, 12], weight: 315 },
-        { name: 'Romanian Deadlift', sets: 4, reps: [10, 10, 12, 12], weight: 225 },
-        { name: 'Leg Press', sets: 4, reps: [12, 12, 15, 15], weight: 450 },
-        { name: 'Walking Lunges', sets: 3, reps: [12, 12, 15], weight: 50 },
-      ],
-      color: '#00FF88'
-    },
-    {
-      id: 3,
-      date: 'May 10, 2026',
-      type: 'BACK DAY',
-      duration: '65 min',
-      volume: 16500,
-      exercises: [
-        { name: 'Deadlift', sets: 4, reps: [6, 8, 8, 10], weight: 405 },
-        { name: 'Pull-ups', sets: 4, reps: [12, 10, 8, 8], weight: 0 },
-        { name: 'Barbell Rows', sets: 4, reps: [10, 10, 12, 12], weight: 185 },
-        { name: 'Face Pulls', sets: 3, reps: [15, 15, 20], weight: 30 },
-      ],
-      color: '#00D4FF'
-    },
-    {
-      id: 4,
-      date: 'May 9, 2026',
-      type: 'SHOULDER DAY',
-      duration: '58 min',
-      volume: 14200,
-      exercises: [
-        { name: 'Military Press', sets: 4, reps: [8, 10, 10, 12], weight: 135 },
-        { name: 'Lateral Raises', sets: 4, reps: [12, 12, 15, 15], weight: 30 },
-        { name: 'Arnold Press', sets: 3, reps: [10, 12, 12], weight: 60 },
-        { name: 'Rear Delt Flyes', sets: 3, reps: [15, 15, 20], weight: 25 },
-      ],
-      color: '#F59E0B'
-    },
-    {
-      id: 5,
-      date: 'May 8, 2026',
-      type: 'ARM DAY',
-      duration: '52 min',
-      volume: 9800,
-      exercises: [
-        { name: 'Barbell Curls', sets: 4, reps: [10, 10, 12, 12], weight: 95 },
-        { name: 'Skull Crushers', sets: 4, reps: [10, 10, 12, 12], weight: 85 },
-        { name: 'Hammer Curls', sets: 3, reps: [12, 12, 15], weight: 40 },
-        { name: 'Cable Pushdowns', sets: 3, reps: [15, 15, 20], weight: 60 },
-      ],
-      color: '#3B82F6'
-    },
-  ];
+  useEffect(() => {
+    const staticHistory = [
+      {
+        id: 1,
+        date: 'May 12, 2026',
+        type: 'CHEST DAY',
+        duration: '68 min',
+        volume: 18900,
+        exercises: [
+          { name: 'Barbell Bench Press', sets: 4, reps: [8, 8, 10, 12], weight: 225 },
+          { name: 'Incline Dumbbell Press', sets: 4, reps: [10, 10, 12, 12], weight: 80 },
+          { name: 'Cable Flyes', sets: 3, reps: [12, 15, 15], weight: 45 },
+          { name: 'Dips', sets: 3, reps: [15, 12, 10], weight: 0 },
+        ],
+        color: '#FF3366'
+      },
+      {
+        id: 2,
+        date: 'May 11, 2026',
+        type: 'LEG DAY',
+        duration: '72 min',
+        volume: 21500,
+        exercises: [
+          { name: 'Back Squat', sets: 5, reps: [8, 8, 10, 10, 12], weight: 315 },
+          { name: 'Romanian Deadlift', sets: 4, reps: [10, 10, 12, 12], weight: 225 },
+          { name: 'Leg Press', sets: 4, reps: [12, 12, 15, 15], weight: 450 },
+          { name: 'Walking Lunges', sets: 3, reps: [12, 12, 15], weight: 50 },
+        ],
+        color: '#00FF88'
+      },
+      {
+        id: 3,
+        date: 'May 10, 2026',
+        type: 'BACK DAY',
+        duration: '65 min',
+        volume: 16500,
+        exercises: [
+          { name: 'Deadlift', sets: 4, reps: [6, 8, 8, 10], weight: 405 },
+          { name: 'Pull-ups', sets: 4, reps: [12, 10, 8, 8], weight: 0 },
+          { name: 'Barbell Rows', sets: 4, reps: [10, 10, 12, 12], weight: 185 },
+          { name: 'Face Pulls', sets: 3, reps: [15, 15, 20], weight: 30 },
+        ],
+        color: '#00D4FF'
+      },
+      {
+        id: 4,
+        date: 'May 9, 2026',
+        type: 'SHOULDER DAY',
+        duration: '58 min',
+        volume: 14200,
+        exercises: [
+          { name: 'Military Press', sets: 4, reps: [8, 10, 10, 12], weight: 135 },
+          { name: 'Lateral Raises', sets: 4, reps: [12, 12, 15, 15], weight: 30 },
+          { name: 'Arnold Press', sets: 3, reps: [10, 12, 12], weight: 60 },
+          { name: 'Rear Delt Flyes', sets: 3, reps: [15, 15, 20], weight: 25 },
+        ],
+        color: '#F59E0B'
+      },
+      {
+        id: 5,
+        date: 'May 8, 2026',
+        type: 'ARM DAY',
+        duration: '52 min',
+        volume: 9800,
+        exercises: [
+          { name: 'Barbell Curls', sets: 4, reps: [10, 10, 12, 12], weight: 95 },
+          { name: 'Skull Crushers', sets: 4, reps: [10, 10, 12, 12], weight: 85 },
+          { name: 'Hammer Curls', sets: 3, reps: [12, 12, 15], weight: 40 },
+          { name: 'Cable Pushdowns', sets: 3, reps: [15, 15, 20], weight: 60 },
+        ],
+        color: '#3B82F6'
+      },
+    ];
+
+    try {
+      const stored = localStorage.getItem('custom_workout_history');
+      if (stored) {
+        const custom = JSON.parse(stored);
+        setWorkoutHistory([...custom, ...staticHistory]);
+      } else {
+        setWorkoutHistory(staticHistory);
+      }
+    } catch (e) {
+      setWorkoutHistory(staticHistory);
+    }
+  }, []);
 
   const weeklyStats = [
     { label: 'Total Workouts', value: '5', color: '#00D4FF' },
