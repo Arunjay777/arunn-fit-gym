@@ -60,26 +60,36 @@ import DietPlan from './screens/DietPlan';
 import Admin from './screens/Admin';
 
 // Protected Route Component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'user' | 'admin' }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(true);
 
   useEffect(() => {
     const userRole = localStorage.getItem('userRole');
     setIsAuthenticated(!!userRole);
+    if (requiredRole && userRole !== requiredRole) {
+      setIsAuthorized(false);
+    } else {
+      setIsAuthorized(true);
+    }
     setIsLoading(false);
-  }, []);
+  }, [requiredRole]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#030303' }}>
-        <div className="font-mono text-xl" style={{ color: '#00D4FF' }}>LOADING...</div>
+      <div className="min-h-screen flex items-center justify-center animate-pulse" style={{ background: '#030303' }}>
+        <div className="font-mono text-xl" style={{ color: '#00D4FF' }}>LOADING PROTOCOL...</div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!isAuthorized) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -176,7 +186,7 @@ export default function App() {
           <Route path="/social" element={<ProtectedRoute><SocialFeed /></ProtectedRoute>} />
           <Route path="/partners" element={<ProtectedRoute><TrainingPartners /></ProtectedRoute>} />
           <Route path="/diet-plan" element={<ProtectedRoute><DietPlan /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />

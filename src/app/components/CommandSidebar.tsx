@@ -33,12 +33,20 @@ const navItems: NavItem[] = [
 export default function CommandSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const userRole = localStorage.getItem('userRole');
 
   const handleLogout = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('username');
     navigate('/login');
   };
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.path === '/admin' && userRole !== 'admin') {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="fixed bottom-0 left-0 w-full lg:left-0 lg:top-0 lg:h-full lg:w-24 flex flex-row lg:flex-col items-center py-2 lg:py-6 gap-2 lg:gap-6 z-50"
@@ -61,7 +69,7 @@ export default function CommandSidebar() {
 
       {/* Nav Items */}
       <div className="flex flex-row lg:flex-col gap-1 lg:gap-2 flex-1 overflow-x-auto lg:overflow-y-auto overflow-y-hidden px-4 lg:px-0 scrollbar-hide">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
 
