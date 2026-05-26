@@ -5,6 +5,7 @@ import { Camera, Play, Pause, RotateCcw, Activity } from 'lucide-react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-cpu';
 import { motion } from "motion/react";
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -33,6 +34,7 @@ export default function RepCounter() {
   const detectorRef = useRef<poseDetection.PoseDetector | null>(null);
   const requestRef = useRef<number>(0);
   const [cameraActive, setCameraActive] = useState(false);
+  const [useSimulator, setUseSimulator] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(true);
 
   // Initialize TF and Model
@@ -61,6 +63,7 @@ export default function RepCounter() {
           setIsModelLoading(false);
         } catch (innerError) {
           setFeedback(["Critical Error: Neural Core failed to initialize."]);
+          setIsModelLoading(false);
         }
       }
     }
@@ -164,13 +167,73 @@ export default function RepCounter() {
     });
   }, [isActive, status, exercise]);
 
+  const startSimulation = () => {
+    setUseSimulator(true);
+    setCameraActive(true);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = 640;
+      canvas.height = 480;
+    }
+    setFeedback(["Simulation node activated. Streaming artificial telemetry..."]);
+  };
+
   const detect = useCallback(async () => {
-    if (detectorRef.current && videoRef.current && cameraActive) {
+    if (useSimulator && cameraActive) {
+      const t = Date.now() / 1000;
+      const motionPercent = (Math.sin(t * 1.5) + 1) / 2; // oscillates 0 to 1
+      
+      let keypoints: poseDetection.Keypoint[] = [];
+      if (exercise === 'squat') {
+        const hipX = 150 - motionPercent * 20;
+        const hipY = 220 + motionPercent * 70;
+        const kneeX = 150 + motionPercent * 25;
+        const kneeY = 300 + motionPercent * 40;
+        const ankleX = 150;
+        const ankleY = 380;
+        
+        keypoints = [
+          { name: 'left_shoulder', x: 150, y: 140, score: 0.9 },
+          { name: 'right_shoulder', x: 230, y: 140, score: 0.9 },
+          { name: 'left_hip', x: hipX, y: hipY, score: 0.9 },
+          { name: 'left_knee', x: kneeX, y: kneeY, score: 0.9 },
+          { name: 'left_ankle', x: ankleX, y: ankleY, score: 0.9 },
+        ];
+      } else {
+        const wristX = 150 + motionPercent * 25;
+        const wristY = 320 - motionPercent * 150;
+        const elbowX = 150;
+        const elbowY = 240;
+        
+        keypoints = [
+          { name: 'left_shoulder', x: 150, y: 160, score: 0.9 },
+          { name: 'left_elbow', x: elbowX, y: elbowY, score: 0.9 },
+          { name: 'left_wrist', x: wristX, y: wristY, score: 0.9 },
+        ];
+      }
+      
+      const simPose: poseDetection.Pose = {
+        keypoints,
+        score: 0.95
+      };
+      
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const scaleX = canvas.width / 300;
+        const scaleY = canvas.height / 400;
+        simPose.keypoints.forEach(kp => {
+          kp.x = kp.x * scaleX;
+          kp.y = kp.y * scaleY;
+        });
+      }
+      
+      drawPose([simPose]);
+    } else if (detectorRef.current && videoRef.current && cameraActive) {
       const poses = await detectorRef.current.estimatePoses(videoRef.current);
       drawPose(poses);
     }
     requestRef.current = requestAnimationFrame(detect);
-  }, [cameraActive, drawPose]);
+  }, [cameraActive, useSimulator, exercise, drawPose]);
 
   useEffect(() => {
     if (cameraActive) {
@@ -184,6 +247,11 @@ export default function RepCounter() {
   }, []);
 
   const startCamera = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setFeedback(["Error: Camera API not supported. Activating Simulation mode..."]);
+      startSimulation();
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -204,11 +272,13 @@ export default function RepCounter() {
             videoRef.current.height = height;
           }
           setCameraActive(true);
+          setUseSimulator(false);
         };
       }
     } catch (err) {
       console.error('Camera access denied:', err);
-      setFeedback(["Error: Camera access denied"]);
+      setFeedback(["Error: Camera access denied. Activating Simulation mode..."]);
+      startSimulation();
     }
   };
 
@@ -216,8 +286,9 @@ export default function RepCounter() {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
-      setCameraActive(false);
     }
+    setCameraActive(false);
+    setUseSimulator(false);
   };
 
   const handleReset = () => {
@@ -236,7 +307,7 @@ export default function RepCounter() {
           <TacticalCard noPadding className="relative overflow-hidden group border-cyan-500/20">
             <div className="relative bg-[#050505] rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl h-[400px] sm:h-[500px] lg:h-[540px]">
               {!cameraActive ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/50 backdrop-blur-sm">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/50 backdrop-blur-sm gap-4">
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -250,6 +321,15 @@ export default function RepCounter() {
                     <span className="font-mono text-[10px] lg:text-sm tracking-[0.2em] lg:tracking-[0.3em] text-cyan-400 text-center">
                       {isModelLoading ? 'INITIALIZING NEURAL NET...' : 'ACTIVATE OPTIC SENSORS'}
                     </span>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={startSimulation}
+                    className="px-6 py-3 rounded-xl border border-teal-500/30 font-mono text-[10px] sm:text-xs text-teal-400 bg-teal-500/5 hover:bg-teal-500/20 transition-all uppercase tracking-widest cursor-pointer flex items-center gap-2"
+                  >
+                    <span>⚡ ACTIVATE SIMULATOR FALLBACK</span>
                   </motion.button>
                 </div>
               ) : (
