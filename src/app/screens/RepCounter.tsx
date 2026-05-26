@@ -306,6 +306,25 @@ export default function RepCounter() {
         <div className="lg:col-span-2 space-y-4 lg:space-y-6">
           <TacticalCard noPadding className="relative overflow-hidden group border-cyan-500/20">
             <div className="relative bg-[#050505] rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl h-[400px] sm:h-[500px] lg:h-[540px]">
+              {/* Always rendered in DOM to guarantee ref presence */}
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted
+                className={cn(
+                  "w-full h-full object-cover -scale-x-100 transition-opacity duration-300",
+                  cameraActive ? "opacity-100" : "opacity-0 absolute"
+                )} 
+              />
+              <canvas 
+                ref={canvasRef} 
+                className={cn(
+                  "absolute inset-0 w-full h-full pointer-events-none object-cover -scale-x-100 transition-opacity duration-300",
+                  cameraActive ? "opacity-100" : "opacity-0"
+                )}
+              />
+
               {!cameraActive ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/50 backdrop-blur-sm gap-4">
                   <motion.button 
@@ -334,18 +353,6 @@ export default function RepCounter() {
                 </div>
               ) : (
                 <>
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted
-                    className="w-full h-full object-cover opacity-60 -scale-x-100" 
-                  />
-                  <canvas 
-                    ref={canvasRef} 
-                    className="absolute inset-0 w-full h-full pointer-events-none object-cover -scale-x-100"
-                  />
-                  
                   {/* Digital HUD Overlay */}
                   <div className="absolute inset-0 pointer-events-none overflow-hidden p-4 lg:p-8">
                     <div className="absolute top-0 left-0 w-full h-full border-[10px] lg:border-[20px] border-cyan-500/5" />
