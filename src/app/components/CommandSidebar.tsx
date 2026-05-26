@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock } from 'lucide-react';
+import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock, Library } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavItem {
@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { icon: Heart, label: 'Recovery', path: '/recovery' },
   { icon: BarChart3, label: 'Progress', path: '/progress' },
   { icon: Calendar, label: 'Schedule', path: '/schedule' },
+  { icon: Library, label: 'Exercises', path: '/exercises' },
   { icon: Award, label: 'Achievements', path: '/achievements' },
   { icon: Clock, label: 'History', path: '/history' },
   { icon: Headphones, label: 'Audio', path: '/audio' },

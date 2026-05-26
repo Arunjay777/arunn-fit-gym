@@ -15,6 +15,7 @@ import Progress from './screens/Progress';
 import Schedule from './screens/Schedule';
 import Achievements from './screens/Achievements';
 import History from './screens/History';
+import Exercises from './screens/Exercises';
 import Audio from './screens/Audio';
 import Profile from './screens/Profile';
 import Settings from './screens/Settings';
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="/recovery" element={<ProtectedRoute><Recovery /></ProtectedRoute>} />
           <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
           <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
+          <Route path="/exercises" element={<ProtectedRoute><Exercises /></ProtectedRoute>} />
           <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/audio" element={<ProtectedRoute><Audio /></ProtectedRoute>} />

@@ -63,7 +63,10 @@ export default function Training() {
   const [selectedWorkout, setSelectedWorkout] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const [completedSets, setCompletedSets] = useState<Record<number, number>>({});
+  const [exerciseLogs, setExerciseLogs] = useState<Record<number, { 
+    notes: string, 
+    sets: { weight: string, reps: string, type: 'Normal' | 'Warmup' | 'Drop' | 'Failure', completed: boolean }[] 
+  }>>({});
   const [isResting, setIsResting] = useState(false);
   const [restTime, setRestTime] = useState(0);
   const [workoutTime, setWorkoutTime] = useState(0);
@@ -71,6 +74,25 @@ export default function Training() {
 
   const currentWorkoutData = selectedWorkout ? workoutData[selectedWorkout as keyof typeof workoutData] : null;
   const currentExercise = currentWorkoutData?.exercises[currentExerciseIndex];
+
+  // Initialize logs when a workout starts
+  useEffect(() => {
+    if (currentWorkoutData && Object.keys(exerciseLogs).length === 0) {
+      const initialLogs: typeof exerciseLogs = {};
+      currentWorkoutData.exercises.forEach((ex, idx) => {
+        initialLogs[idx] = {
+          notes: '',
+          sets: Array.from({ length: ex.sets }).map(() => ({
+            weight: ex.weight.replace(' lbs', ''),
+            reps: ex.reps.includes('-') ? ex.reps.split('-')[0] : ex.reps === 'To Failure' ? '12' : ex.reps,
+            type: 'Normal',
+            completed: false
+          }))
+        };
+      });
+      setExerciseLogs(initialLogs);
+    }
+  }, [currentWorkoutData]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -103,20 +125,55 @@ export default function Training() {
     setShowModal(true);
     setIsWorkoutActive(true);
     setCurrentExerciseIndex(0);
-    setCompletedSets({});
+    setExerciseLogs({}); // Will be initialized by useEffect
     setWorkoutTime(0);
   };
 
-  const handleCompleteSet = () => {
-    const currentSets = completedSets[currentExerciseIndex] || 0;
-    const newSets = currentSets + 1;
-    setCompletedSets({ ...completedSets, [currentExerciseIndex]: newSets });
+  const handleCompleteSet = (setIndex: number) => {
+    if (!exerciseLogs[currentExerciseIndex]) return;
 
-    if (currentExercise && newSets < currentExercise.sets) {
-      // Start rest timer
-      setIsResting(true);
-      setRestTime(currentExercise.rest);
+    const newLogs = { ...exerciseLogs };
+    const currentSets = [...newLogs[currentExerciseIndex].sets];
+    currentSets[setIndex].completed = !currentSets[setIndex].completed;
+    newLogs[currentExerciseIndex].sets = currentSets;
+    setExerciseLogs(newLogs);
+
+    if (currentSets[setIndex].completed) {
+      // Check if there are more sets to complete for this exercise
+      const incompleteIndex = currentSets.findIndex((s, i) => !s.completed && i > setIndex);
+      if (incompleteIndex !== -1 && currentExercise) {
+        setIsResting(true);
+        setRestTime(currentExercise.rest);
+      }
     }
+  };
+
+  const updateSetData = (setIndex: number, field: 'weight' | 'reps' | 'type', value: string) => {
+    const newLogs = { ...exerciseLogs };
+    const currentSets = [...newLogs[currentExerciseIndex].sets];
+    (currentSets[setIndex] as any)[field] = value;
+    newLogs[currentExerciseIndex].sets = currentSets;
+    setExerciseLogs(newLogs);
+  };
+
+  const updateNotes = (notes: string) => {
+    const newLogs = { ...exerciseLogs };
+    newLogs[currentExerciseIndex].notes = notes;
+    setExerciseLogs(newLogs);
+  };
+
+  const addSet = () => {
+    const newLogs = { ...exerciseLogs };
+    const currentSets = [...newLogs[currentExerciseIndex].sets];
+    const lastSet = currentSets[currentSets.length - 1];
+    currentSets.push({
+      weight: lastSet?.weight || '0',
+      reps: lastSet?.reps || '10',
+      type: 'Normal',
+      completed: false
+    });
+    newLogs[currentExerciseIndex].sets = currentSets;
+    setExerciseLogs(newLogs);
   };
 
   const handleNextExercise = () => {
@@ -148,8 +205,11 @@ export default function Training() {
   };
 
   const totalSets = currentWorkoutData?.exercises.reduce((sum, ex) => sum + ex.sets, 0) || 0;
-  const completedSetsCount = Object.values(completedSets).reduce((sum, count) => sum + count, 0);
+  const completedSetsCount = Object.values(exerciseLogs).reduce((sum, log) => 
+    sum + log.sets.filter(s => s.completed).length, 0
+  );
   const progress = totalSets > 0 ? Math.round((completedSetsCount / totalSets) * 100) : 0;
+  const currentLogs = exerciseLogs[currentExerciseIndex];
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
@@ -296,40 +356,90 @@ export default function Training() {
             {/* Current Exercise */}
             <div className="flex-1 overflow-y-auto p-4 lg:p-6 scrollbar-hide">
               <div className="mb-6 p-4 lg:p-8 rounded-[2rem] bg-cyan-400/5 border-2 border-cyan-500/20 shadow-[0_0_40px_rgba(6,182,212,0.1)]">
-                <div className="font-mono font-bold text-xl lg:text-4xl mb-4 lg:mb-6 text-cyan-400 tracking-tight leading-tight">
-                  {currentExercise.name}
-                </div>
-                <div className="grid grid-cols-3 gap-2 lg:gap-8 mb-6 lg:mb-8">
-                  <div className="text-center">
-                    <div className="font-mono text-[9px] lg:text-xs mb-1 text-cyan-400/40 tracking-widest uppercase">SETS</div>
-                    <div className="font-mono font-bold text-lg lg:text-3xl text-white">{currentExercise.sets}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-mono text-[9px] lg:text-xs mb-1 text-cyan-400/40 tracking-widest uppercase">REPS</div>
-                    <div className="font-mono font-bold text-lg lg:text-3xl text-white">{currentExercise.reps}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-mono text-[9px] lg:text-xs mb-1 text-cyan-400/40 tracking-widest uppercase">WEIGHT</div>
-                    <div className="font-mono font-bold text-lg lg:text-3xl text-white">{currentExercise.weight}</div>
+                <div className="flex items-center justify-between mb-4 lg:mb-6">
+                  <div className="font-mono font-bold text-xl lg:text-4xl text-cyan-400 tracking-tight leading-tight">
+                    {currentExercise.name}
                   </div>
                 </div>
 
-                {/* Set Tracker */}
-                <div className="grid grid-cols-4 sm:flex gap-2">
-                  {Array.from({ length: currentExercise.sets }).map((_, i) => (
-                    <div
-                      key={i}
+                {/* Detailed Set Logging */}
+                <div className="space-y-3 mb-6">
+                  <div className="grid grid-cols-12 gap-2 text-center mb-1">
+                    <div className="col-span-1 font-mono text-[8px] text-white/30 uppercase">SET</div>
+                    <div className="col-span-3 font-mono text-[8px] text-white/30 uppercase">TYPE</div>
+                    <div className="col-span-3 font-mono text-[8px] text-white/30 uppercase">WEIGHT (lbs)</div>
+                    <div className="col-span-3 font-mono text-[8px] text-white/30 uppercase">REPS</div>
+                    <div className="col-span-2 font-mono text-[8px] text-white/30 uppercase">STATUS</div>
+                  </div>
+
+                  {currentLogs?.sets.map((set, i) => (
+                    <div 
+                      key={i} 
                       className={cn(
-                        "flex-1 py-3 lg:py-4 rounded-xl lg:rounded-2xl font-mono text-[10px] lg:text-sm font-bold flex items-center justify-center gap-1 lg:gap-2 transition-all",
-                        i < (completedSets[currentExerciseIndex] || 0) 
-                          ? "bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
-                          : "bg-black/40 text-cyan-400 border border-cyan-500/20"
+                        "grid grid-cols-12 gap-2 items-center p-2 rounded-xl transition-all",
+                        set.completed ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-white/5 border border-white/5"
                       )}
                     >
-                      {i < (completedSets[currentExerciseIndex] || 0) && <Check className="w-3 h-3 lg:w-4 lg:h-4" />}
-                      SET {i + 1}
+                      <div className="col-span-1 text-center font-mono text-xs font-bold text-white/40">{i + 1}</div>
+                      <div className="col-span-3">
+                        <select 
+                          value={set.type}
+                          onChange={(e) => updateSetData(i, 'type', e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-lg py-1 px-1 font-mono text-[10px] text-cyan-400 outline-none"
+                        >
+                          <option value="Normal">NORMAL</option>
+                          <option value="Warmup">WARMUP</option>
+                          <option value="Drop">DROP</option>
+                          <option value="Failure">FAILURE</option>
+                        </select>
+                      </div>
+                      <div className="col-span-3">
+                        <input 
+                          type="number"
+                          value={set.weight}
+                          onChange={(e) => updateSetData(i, 'weight', e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-lg py-1 px-2 font-mono text-xs text-center text-white outline-none"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <input 
+                          type="number"
+                          value={set.reps}
+                          onChange={(e) => updateSetData(i, 'reps', e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-lg py-1 px-2 font-mono text-xs text-center text-white outline-none"
+                        />
+                      </div>
+                      <div className="col-span-2 flex justify-center">
+                        <button 
+                          onClick={() => handleCompleteSet(i)}
+                          className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                            set.completed ? "bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.3)]" : "bg-white/10 text-white/40 hover:bg-white/20"
+                          )}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button 
+                    onClick={addSet}
+                    className="flex-1 py-3 rounded-xl border border-dashed border-cyan-500/30 font-mono text-xs text-cyan-400 hover:bg-cyan-400/5 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    ADD SET
+                  </button>
+                  <div className="flex-1">
+                    <textarea 
+                      placeholder="Add exercise notes..."
+                      value={currentLogs?.notes || ''}
+                      onChange={(e) => updateNotes(e.target.value)}
+                      className="w-full h-12 bg-black/40 border border-white/10 rounded-xl py-2 px-3 font-mono text-[10px] text-white/60 outline-none resize-none focus:border-cyan-500/50 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -369,7 +479,7 @@ export default function Training() {
                       {i + 1}. {exercise.name}
                     </div>
                     <div className="font-mono text-[10px] lg:text-xs text-white/40 whitespace-nowrap">
-                      {completedSets[i] || 0}/{exercise.sets} sets
+                      {exerciseLogs[i]?.sets.filter(s => s.completed).length || 0}/{exercise.sets} sets
                     </div>
                   </div>
                 ))}
@@ -387,12 +497,15 @@ export default function Training() {
                   PREVIOUS
                 </button>
                 <button
-                  onClick={handleCompleteSet}
-                  disabled={isResting || (completedSets[currentExerciseIndex] || 0) >= currentExercise.sets}
+                  onClick={() => {
+                    const firstIncomplete = currentLogs.sets.findIndex(s => !s.completed);
+                    if (firstIncomplete !== -1) handleCompleteSet(firstIncomplete);
+                  }}
+                  disabled={isResting || currentLogs?.sets.every(s => s.completed)}
                   className="py-3 lg:py-4 rounded-2xl font-mono text-xs lg:text-sm font-bold flex items-center justify-center gap-2 bg-emerald-500 text-black hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 uppercase tracking-widest"
                 >
                   <Check className="w-4 h-4" />
-                  COMPLETE SET
+                  COMPLETE NEXT SET
                 </button>
                 <div className="grid grid-cols-2 sm:block gap-2">
                   <button
