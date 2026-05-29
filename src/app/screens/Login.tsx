@@ -44,7 +44,10 @@ export default function Login() {
   // Submit flow
   const handleFormLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedUsername || !trimmedPassword) {
       setLoginError('CREDENTIALS CANNOT BE EMPTY');
       return;
     }
@@ -54,6 +57,21 @@ export default function Login() {
 
     // Dynamic professional validation delay
     await new Promise((resolve) => setTimeout(resolve, 1400));
+
+    // Proper login validation logic
+    if (activeRole === 'admin') {
+      if (trimmedUsername !== 'commander_prime' || trimmedPassword !== 'admin_power') {
+        setIsSubmitting(false);
+        setLoginError('ACCESS DENIED: INVALID COACH CREDENTIALS');
+        return;
+      }
+    } else {
+      if (trimmedUsername !== 'operator_aj' || trimmedPassword !== 'fitness2026') {
+        setIsSubmitting(false);
+        setLoginError('ACCESS DENIED: INVALID ATHLETE CREDENTIALS');
+        return;
+      }
+    }
 
     localStorage.setItem('userRole', activeRole);
     setIsSubmitting(false);
