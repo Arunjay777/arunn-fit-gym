@@ -42,6 +42,9 @@ export default function CommandSidebar() {
   };
 
   const filteredNavItems = navItems.filter((item) => {
+    if (userRole === 'admin') {
+      return item.path === '/' || item.path === '/admin';
+    }
     if (item.path === '/admin' && userRole !== 'admin') {
       return false;
     }
