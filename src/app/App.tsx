@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import CommandSidebar from './components/CommandSidebar';
 
 // Import all screens
+import Landing from './screens/Landing';
 import Login from './screens/Login';
 import Dashboard from './screens/Dashboard';
 import Mission from './screens/Mission';
@@ -98,12 +99,12 @@ function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode;
 // Main Layout Component
 function MainLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+  const isPublicPage = location.pathname === '/' || location.pathname === '/login';
 
   return (
     <div className="min-h-screen dark bg-black" style={{ background: '#030303' }}>
-      {!isLoginPage && <CommandSidebar />}
-      <div className={isLoginPage ? '' : 'lg:ml-24 pb-20 lg:pb-0'}>
+      {!isPublicPage && <CommandSidebar />}
+      <div className={isPublicPage ? '' : 'lg:ml-24 pb-20 lg:pb-0'}>
         {children}
       </div>
     </div>
@@ -116,10 +117,11 @@ export default function App() {
       <MainLayout>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
 
           {/* Protected Routes */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/mission" element={<ProtectedRoute><Mission /></ProtectedRoute>} />
           <Route path="/rep-counter" element={<ProtectedRoute><RepCounter /></ProtectedRoute>} />
           <Route path="/vitals" element={<ProtectedRoute><Vitals /></ProtectedRoute>} />

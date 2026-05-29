@@ -1,35 +1,43 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Dumbbell, User, Lock, Eye, EyeOff, Loader2, Play, Check, Flame, Trophy,
-  Clipboard, Users, Activity, Sparkles, ShieldCheck
+  Clipboard, Users, Activity, Sparkles, ShieldCheck, ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../components/ui/utils';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // State variables for credentials
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [activeRole, setActiveRole] = useState<'user' | 'admin'>('user');
   
   // Interaction and validation states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isRegisterMode, setIsRegisterMode] = useState<boolean>(!!location.state?.register);
+  const [regSuccess, setRegSuccess] = useState<string | null>(null);
 
   // Preset Credentials Helper & State Switcher
   const handleRoleSwitch = (role: 'user' | 'admin') => {
     setActiveRole(role);
     setLoginError(null);
+    setRegSuccess(null);
     setUsername('');
     setPassword('');
+    setConfirmPassword('');
   };
 
   const handleQuickFill = (role: 'user' | 'admin') => {
     setLoginError(null);
+    setRegSuccess(null);
+    setIsRegisterMode(false);
     if (role === 'user') {
       setUsername('operator_aj');
       setPassword('fitness2026');
@@ -42,7 +50,7 @@ export default function Login() {
   };
 
   // Submit flow
-  const handleFormLogin = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedUsername = username.trim();
     const trimmedPassword = password.trim();
@@ -52,30 +60,112 @@ export default function Login() {
       return;
     }
 
-    setLoginError(null);
-    setIsSubmitting(true);
-
-    // Dynamic professional validation delay
-    await new Promise((resolve) => setTimeout(resolve, 1400));
-
-    // Proper login validation logic
-    if (activeRole === 'admin') {
-      if (trimmedUsername !== 'commander_prime' || trimmedPassword !== 'admin_power') {
-        setIsSubmitting(false);
-        setLoginError('ACCESS DENIED: INVALID COACH CREDENTIALS');
+    if (isRegisterMode) {
+      const trimmedConfirm = confirmPassword.trim();
+      if (!trimmedConfirm) {
+        setLoginError('PLEASE CONFIRM YOUR PASSWORD');
         return;
       }
+      if (trimmedPassword !== trimmedConfirm) {
+        setLoginError('PASSWORDS DO NOT MATCH');
+        return;
+      }
+      if (trimmedPassword.length < 4) {
+        setLoginError('PASSWORD MUST BE AT LEAST 4 CHARACTERS');
+        return;
+      }
+
+      setLoginError(null);
+      setIsSubmitting(true);
+
+      // Registration Delay
+      await new Promise((resolve) => setTimeout(resolve, 1400));
+
+      const registeredJson = localStorage.getItem('registeredUsers');
+      let registeredUsers = [];
+      if (registeredJson) {
+        try {
+          registeredUsers = JSON.parse(registeredJson);
+        } catch (err) {
+          registeredUsers = [];
+        }
+      }
+
+      // Check if username already exists in default list or registered list
+      const userExists = registeredUsers.some(
+        (u: any) => u.username.toLowerCase() === trimmedUsername.toLowerCase()
+      ) || (trimmedUsername.toLowerCase() === 'operator_aj') || (trimmedUsername.toLowerCase() === 'commander_prime');
+
+      if (userExists) {
+        setIsSubmitting(false);
+        setLoginError('USERNAME ALREADY TAKEN');
+        return;
+      }
+
+      // Safe registration
+      registeredUsers.push({
+        username: trimmedUsername,
+        password: trimmedPassword,
+        role: activeRole
+      });
+
+      localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+      
+      setIsSubmitting(false);
+      setRegSuccess('REGISTRATION SUCCESSFUL! DEPLOYED REGISTER.');
+      
+      // Clear inputs and transition to login mode
+      setTimeout(() => {
+        setIsRegisterMode(false);
+        setRegSuccess(null);
+        setConfirmPassword('');
+      }, 1800);
+
     } else {
-      if (trimmedUsername !== 'operator_aj' || trimmedPassword !== 'fitness2026') {
-        setIsSubmitting(false);
-        setLoginError('ACCESS DENIED: INVALID ATHLETE CREDENTIALS');
-        return;
-      }
-    }
+      setLoginError(null);
+      setIsSubmitting(true);
 
-    localStorage.setItem('userRole', activeRole);
-    setIsSubmitting(false);
-    navigate('/');
+      // Dynamic professional validation delay
+      await new Promise((resolve) => setTimeout(resolve, 1400));
+
+      // Retrieve registered accounts list
+      const registeredJson = localStorage.getItem('registeredUsers');
+      let registeredUsers = [];
+      if (registeredJson) {
+        try {
+          registeredUsers = JSON.parse(registeredJson);
+        } catch (err) {
+          registeredUsers = [];
+        }
+      }
+
+      // Match check
+      const matchedUser = registeredUsers.find(
+        (u: any) => u.username.toLowerCase() === trimmedUsername.toLowerCase() && 
+                   u.password === trimmedPassword && 
+                   u.role === activeRole
+      );
+
+      if (activeRole === 'admin') {
+        const isDefaultAdmin = trimmedUsername === 'commander_prime' && trimmedPassword === 'admin_power';
+        if (!isDefaultAdmin && !matchedUser) {
+          setIsSubmitting(false);
+          setLoginError('ACCESS DENIED: INVALID COACH CREDENTIALS');
+          return;
+        }
+      } else {
+        const isDefaultUser = trimmedUsername === 'operator_aj' && trimmedPassword === 'fitness2026';
+        if (!isDefaultUser && !matchedUser) {
+          setIsSubmitting(false);
+          setLoginError('ACCESS DENIED: INVALID ATHLETE CREDENTIALS');
+          return;
+        }
+      }
+
+      localStorage.setItem('userRole', activeRole);
+      setIsSubmitting(false);
+      navigate('/dashboard');
+    }
   };
 
   // Left side image mapping based on role
@@ -201,6 +291,17 @@ export default function Login() {
 
       {/* Right Side / Mobile Centered Minimalistic Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 relative overflow-hidden">
+        
+        {/* Absolute Back to Home Navigation Control */}
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="absolute top-6 left-6 flex items-center gap-1.5 font-mono text-[9px] tracking-widest uppercase text-white/50 hover:text-white transition-all bg-white/[0.02] hover:bg-white/[0.06] hover:border-white/20 px-3 py-2 rounded-lg border border-white/5 cursor-pointer z-30 shadow-lg"
+          id="back-to-home-btn"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>RETURN TO HOME</span>
+        </button>
         
         {/* Background ambient lighting matches the active role colour */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.02]" style={{ 
@@ -336,7 +437,9 @@ export default function Login() {
                   </div>
                   <div className="space-y-1">
                     <p className="font-sans text-xs font-bold text-white uppercase tracking-wider">
-                      {activeRole === 'user' ? "DECRYPTING ATHLETE RECORD ENGINE..." : "INITIALIZING COACH CONTROL CONSOLE..."}
+                      {isRegisterMode 
+                        ? (activeRole === 'user' ? "CREATING NEW ATHLETE ACCOUNT PROFILE..." : "PROVISIONING SECURE COACH WORKSPACE...")
+                        : (activeRole === 'user' ? "DECRYPTING ATHLETE RECORD ENGINE..." : "INITIALIZING COACH CONTROL CONSOLE...")}
                     </p>
                     <p className="font-mono text-[9px] text-white/40 uppercase">AUTHORIZING CLEARANCE VERIFICATION...</p>
                   </div>
@@ -344,17 +447,26 @@ export default function Login() {
               ) : (
                 /* Compact Form Input Form */
                 <motion.form
-                  key="form"
-                  onSubmit={handleFormLogin}
+                  key={isRegisterMode ? "register-form" : "login-form"}
+                  onSubmit={handleFormSubmit}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="space-y-4"
                 >
+                  {/* Registration Success Banner */}
+                  {regSuccess && (
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-sans text-xs text-center uppercase tracking-wide font-semibold">
+                      ✨ {regSuccess}
+                    </div>
+                  )}
+
                   {/* Dynamic username prompt label based on role */}
                   <div className="space-y-1">
                     <label className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/50 block">
-                      {activeRole === 'user' ? "ATHLETE OPERATOR USERNAME" : "COACH STATION ID"}
+                      {isRegisterMode 
+                        ? "CHOOSE NEW USERNAME" 
+                        : (activeRole === 'user' ? "ATHLETE OPERATOR USERNAME" : "COACH STATION ID")}
                     </label>
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-white/30">
@@ -374,7 +486,9 @@ export default function Login() {
                   {/* Password Encryption Field */}
                   <div className="space-y-1">
                     <label className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/50 block">
-                      {activeRole === 'user' ? "ATHLETE ENTRY PASSWORD" : "COACH TERMINAL PIN-CODE"}
+                      {isRegisterMode 
+                        ? "CHOOSE SECURITY PASSWORD" 
+                        : (activeRole === 'user' ? "ATHLETE ENTRY PASSWORD" : "COACH TERMINAL PIN-CODE")}
                     </label>
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-white/30">
@@ -397,6 +511,32 @@ export default function Login() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Confirm Password Field (Register Only) */}
+                  {isRegisterMode && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-1"
+                    >
+                      <label className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/50 block">
+                        CONFIRM SECURITY PASSWORD
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-white/30">
+                          <Lock className="w-4 h-4 text-rose-400" />
+                        </span>
+                        <input 
+                          type="password" 
+                          value={confirmPassword} 
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="•••••••••"
+                          className="w-full bg-black/40 border border-white/10 text-white rounded-xl py-3 pl-11 pr-4 font-sans text-sm outline-none focus:border-cyan-400/50 focus:shadow-[0_0_12px_rgba(6,182,212,0.06)] placeholder:text-white/20 transition-all" 
+                          required 
+                        />
+                      </div>
+                    </motion.div>
+                  )}
 
                   {activeRole === 'admin' ? (
                     /* Coach-only descriptive checklist block */
@@ -443,7 +583,9 @@ export default function Login() {
                         : "bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:bg-cyan-300"
                     )}
                   >
-                    <span>{activeRole === 'admin' ? "LAUNCH COACH DESPATCH" : "LAUNCH ATHLETE LOG"}</span>
+                    <span>{isRegisterMode 
+                      ? (activeRole === 'admin' ? "REGISTER & DISPATCH COACH" : "REGISTER & LAUNCH ATHLETE")
+                      : (activeRole === 'admin' ? "LAUNCH COACH DESPATCH" : "LAUNCH ATHLETE LOG")}</span>
                   </button>
                 </motion.form>
               )}
@@ -451,6 +593,24 @@ export default function Login() {
 
             {/* Quick-Access Badges */}
             <div className="mt-5 pt-4 border-t border-white/5 space-y-2.5">
+              {/* Registration Toggle Button */}
+              <div className="flex justify-center pb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegisterMode(!isRegisterMode);
+                    setLoginError(null);
+                    setRegSuccess(null);
+                  }}
+                  className={cn(
+                    "text-xs font-semibold hover:underline bg-transparent border-none tracking-wide flex items-center gap-1 cursor-pointer transition-colors",
+                    activeRole === 'user' ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"
+                  )}
+                >
+                  {isRegisterMode ? "← ALREADY REGISTERED? LOG IN PORTAL" : "NEW TO AJ-FIT? REGISTER AN ACCOUNT"}
+                </button>
+              </div>
+
               <div className="flex items-center justify-between">
                 <span className="font-sans text-[9px] text-white/30 uppercase tracking-widest font-bold">
                   {activeRole === 'user' ? "ATHLETE TEST ACCOUNT" : "COACH TEST ACCOUNT"}

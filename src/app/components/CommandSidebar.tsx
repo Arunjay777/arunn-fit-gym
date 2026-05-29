@@ -10,7 +10,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: Shield, label: 'Command', path: '/', category: 'core' },
+  { icon: Shield, label: 'Command', path: '/dashboard', category: 'core' },
   { icon: Target, label: 'Mission', path: '/mission' },
   { icon: Camera, label: 'Rep Counter', path: '/rep-counter' },
   { icon: Activity, label: 'Vitals', path: '/vitals' },
@@ -43,7 +43,7 @@ export default function CommandSidebar() {
 
   const filteredNavItems = navItems.filter((item) => {
     if (userRole === 'admin') {
-      return item.path === '/' || item.path === '/admin';
+      return item.path === '/dashboard' || item.path === '/admin';
     }
     if (item.path === '/admin' && userRole !== 'admin') {
       return false;
