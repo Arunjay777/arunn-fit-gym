@@ -7,6 +7,7 @@ import {
   Check, ChevronDown, HelpCircle, Eye, Play, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import FitXLogo from '../components/FitXLogo';
 
 // Real-time atmospheric gym/barbell background image
 const landingBg = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&q=80&w=1920';
@@ -133,8 +134,8 @@ export default function Landing() {
   // Frequently Asked Questions
   const faqs = [
     {
-      q: 'What is AJ-FIT On Demand and how does it mimic premium studios?',
-      a: 'AJ-FIT On Demand brings world-class scientific training programs—ranging from high-impact muscle isolation splits to neural diagnostics—straight to your laptop or tablet. Powered by localized offline persistence, it ensures your logs, sets, and progress metrics are recorded with extreme cryptographic precision.'
+      q: 'What is SIMATS FitX On Demand and how does it mimic premium studios?',
+      a: 'SIMATS FitX On Demand brings world-class scientific training programs—ranging from high-impact muscle isolation splits to neural diagnostics—straight to your laptop or tablet. Powered by localized offline persistence, it ensures your logs, sets, and progress metrics are recorded with extreme cryptographic precision.'
     },
     {
       q: 'How do the different security credentials function in the system?',
@@ -192,13 +193,9 @@ export default function Landing() {
           <div className="flex items-center gap-10">
             {/* Project Brand Marks */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToId('hero')}>
-              <div className="w-9 h-9 flex items-center justify-center rounded bg-gradient-to-tr from-cyan-400 to-indigo-500 p-[1px]">
-                <div className="w-full h-full bg-black rounded flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                </div>
-              </div>
+              <FitXLogo className="w-10 h-10 filter drop-shadow-[0_0_10px_rgba(255,107,0,0.4)]" />
               <div>
-                <span className="font-mono text-base font-black tracking-widest text-white">AJ-FIT</span>
+                <span className="font-mono text-base font-black tracking-widest text-white">SIMATS FitX</span>
                 <span className="block font-mono text-[7px] text-cyan-400 font-bold tracking-widest">TACTICAL DEMAND</span>
               </div>
             </div>
@@ -743,7 +740,7 @@ export default function Landing() {
       {/* FOOTER */}
       <footer className="w-full max-w-7xl mx-auto px-6 pt-12 border-t border-white/[0.03] flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left text-[10px] font-mono text-white/30">
         <div>
-          <span>© 2026 AJ-FIT ATHLETICS PERFORMANCE SYSTEMS. ALL WORLD-CLASS CHOREOGRAPHY RIGHTS CONSERVED.</span>
+          <span>© 2026 SIMATS FitX ATHLETICS PERFORMANCE SYSTEMS. ALL WORLD-CLASS CHOREOGRAPHY RIGHTS CONSERVED.</span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <span className="text-[#FA1E4E] font-bold">• SHAPING COMPLIANT & ATTAINABLE PERFORMANCE TACTICS</span>

@@ -3,7 +3,8 @@ import TacticalHeader from '../components/TacticalHeader';
 import TacticalCard from '../components/TacticalCard';
 import { 
   Flame, Zap, Heart, Target, Dumbbell, TrendingUp, Activity, Play, Camera, 
-  Users, AlertCircle, ShieldAlert, Clipboard, Utensils, Star, Award, Shield, ArrowRight
+  Users, AlertCircle, ShieldAlert, Clipboard, Utensils, Star, Award, Shield, ArrowRight,
+  Plus, RotateCcw, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,12 +12,57 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole') || 'user';
 
+  // Persistent Daily Trackers State
+  const [protein, setProtein] = React.useState(() => Number(localStorage.getItem('fitx_dash_protein') || '135'));
+  const [carbs, setCarbs] = React.useState(() => Number(localStorage.getItem('fitx_dash_carbs') || '180'));
+  const [fats, setFats] = React.useState(() => Number(localStorage.getItem('fitx_dash_fats') || '55'));
+  const [water, setWater] = React.useState(() => Number(localStorage.getItem('fitx_dash_water') || '2.2'));
+  const [activeTime, setActiveTime] = React.useState(() => Number(localStorage.getItem('fitx_dash_activetime') || '40'));
+
+  // Custom targets state for customization
+  const [proteinGoal, setProteinGoal] = React.useState(() => Number(localStorage.getItem('fitx_dash_protein_goal') || '180'));
+  const [carbsGoal, setCarbsGoal] = React.useState(() => Number(localStorage.getItem('fitx_dash_carbs_goal') || '250'));
+  const [fatsGoal, setFatsGoal] = React.useState(() => Number(localStorage.getItem('fitx_dash_fats_goal') || '75'));
+  const [waterGoal, setWaterGoal] = React.useState(() => Number(localStorage.getItem('fitx_dash_water_goal') || '4.0'));
+  const [activeTimeGoal, setActiveTimeGoal] = React.useState(() => Number(localStorage.getItem('fitx_dash_active_goal') || '60'));
+
+  const [isCustomizing, setIsCustomizing] = React.useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem('fitx_dash_protein', protein.toString());
+    localStorage.setItem('fitx_dash_carbs', carbs.toString());
+    localStorage.setItem('fitx_dash_fats', fats.toString());
+    localStorage.setItem('fitx_dash_water', water.toString());
+    localStorage.setItem('fitx_dash_activetime', activeTime.toString());
+  }, [protein, carbs, fats, water, activeTime]);
+
+  React.useEffect(() => {
+    localStorage.setItem('fitx_dash_protein_goal', proteinGoal.toString());
+    localStorage.setItem('fitx_dash_carbs_goal', carbsGoal.toString());
+    localStorage.setItem('fitx_dash_fats_goal', fatsGoal.toString());
+    localStorage.setItem('fitx_dash_water_goal', waterGoal.toString());
+    localStorage.setItem('fitx_dash_active_goal', activeTimeGoal.toString());
+  }, [proteinGoal, carbsGoal, fatsGoal, waterGoal, activeTimeGoal]);
+
+  const currentCalories = Math.round(protein * 4 + carbs * 4 + fats * 9);
+  const targetCalories = Math.round(proteinGoal * 4 + carbsGoal * 4 + fatsGoal * 9);
+
+  // Overall progress bar calculated as the average completion of all 5 targets
+  const proteinPercent = Math.min(100, Math.round((protein / proteinGoal) * 100));
+  const carbsPercent = Math.min(100, Math.round((carbs / carbsGoal) * 100));
+  const fatsPercent = Math.min(100, Math.round((fats / fatsGoal) * 100));
+  const waterPercent = Math.min(100, Math.round((water / waterGoal) * 100));
+  const activePercent = Math.min(100, Math.round((activeTime / activeTimeGoal) * 100));
+
+  const averageCompletion = Math.round((proteinPercent + carbsPercent + fatsPercent + waterPercent + activePercent) / 5);
+  const totalCaloriesPercent = Math.min(100, Math.round((currentCalories / targetCalories) * 100));
+
   if (userRole === 'admin') {
     // --- COACH / ADMIN DESIGNATED INTERFACE ---
     return (
       <div className="min-h-screen p-4 lg:p-8" style={{ background: '#08080c' }}>
         <TacticalHeader 
-          title="AJ-FIT COACH STATION" 
+          title="SIMATS FitX COACH STATION" 
           subtitle="TACTICAL COMMAND & ATHLETE ROSTER DESPATCH" 
         />
 
@@ -42,7 +88,7 @@ export default function Dashboard() {
                   onClick={() => navigate('/admin')}
                   className="px-8 py-4 rounded-2xl font-mono font-bold transition-all bg-emerald-400 text-black hover:scale-105 flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.3)]"
                 >
-                  <Shield className="w-5 h-5 fill-current" />
+                  <Zap className="w-5 h-5 fill-current" />
                   LAUNCH CONTROL PANEL
                 </button>
                 <button
@@ -225,7 +271,7 @@ export default function Dashboard() {
   // --- STANDARD ATHLETE INTERFACE ---
   return (
     <div className="min-h-screen p-4 lg:p-8" style={{ background: '#08080c' }}>
-      <TacticalHeader title="AJ-FIT COMMAND CENTER" subtitle="NEURAL-SYNC FITNESS ECOSYSTEM" />
+      <TacticalHeader title="SIMATS FitX COMMAND CENTER" subtitle="NEURAL-SYNC FITNESS ECOSYSTEM" />
 
       {/* Hero Section with Gym Image */}
       <div className="mb-6 relative rounded-3xl overflow-hidden h-[400px] lg:h-[500px] group border border-white/5">
@@ -298,8 +344,420 @@ export default function Dashboard() {
             <Target className="w-4 lg:w-5 h-4 lg:h-5 text-blue-500" />
             <span className="font-mono text-[10px] lg:text-xs text-white/50 uppercase">GOAL PROGRESS</span>
           </div>
-          <div className="font-mono font-bold text-2xl lg:text-3xl text-blue-500">78%</div>
-          <div className="font-mono text-[10px] mt-1 lg:text-xs text-white/40">On track</div>
+          <div className="font-mono font-bold text-2xl lg:text-3xl text-blue-500">{averageCompletion}%</div>
+          <div className="font-mono text-[10px] mt-1 lg:text-xs text-white/40">Aggregated performance</div>
+        </TacticalCard>
+      </div>
+
+      {/* DAILY MACRO & FITNESS GOAL TRACKER */}
+      <div className="mb-6">
+        <TacticalCard glow className="border border-cyan-500/20 bg-zinc-950/85">
+          {/* Header row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-white/5 mb-6 gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
+                <h2 className="font-mono font-bold text-sm text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+                  <Utensils className="w-4 h-4 text-emerald-400" />
+                  DAILY PERFORMANCE FUEL & FITNESS GOAL PORTAL
+                </h2>
+              </div>
+              <p className="font-mono text-[10px] text-white/40 uppercase">
+                Optimize nutrient partitions & physiological output thresholds in real-time
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsCustomizing(!isCustomizing)}
+                className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 font-mono text-xs text-white hover:bg-white/10 active:scale-95 transition-all flex items-center gap-2"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                {isCustomizing ? "LOCK GOALS" : "ADJUST TARGETS"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setProtein(135);
+                  setCarbs(180);
+                  setFats(55);
+                  setWater(2.2);
+                  setActiveTime(40);
+                }}
+                className="px-3 py-1.5 rounded-xl border border-rose-500/20 bg-rose-500/5 font-mono text-xs text-rose-400 hover:bg-rose-500/10 active:scale-95 transition-all flex items-center gap-1.5"
+                title="Reset Intake Progress to baseline"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                RESET PROGRESS
+              </button>
+            </div>
+          </div>
+
+          {/* Goal adjuster forms (only shown if isCustomizing is true) */}
+          {isCustomizing && (
+            <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <label className="block font-mono text-[10px] text-white/40 uppercase mb-1">Protein Goal (g)</label>
+                <input
+                  type="number"
+                  className="w-full bg-black border border-white/10 rounded-xl px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-cyan-400"
+                  value={proteinGoal}
+                  onChange={(e) => setProteinGoal(Math.max(1, Number(e.target.value)))}
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[10px] text-white/40 uppercase mb-1">Carbs Goal (g)</label>
+                <input
+                  type="number"
+                  className="w-full bg-black border border-white/10 rounded-xl px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-cyan-400"
+                  value={carbsGoal}
+                  onChange={(e) => setCarbsGoal(Math.max(1, Number(e.target.value)))}
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[10px] text-white/40 uppercase mb-1">Fats Goal (g)</label>
+                <input
+                  type="number"
+                  className="w-full bg-black border border-white/10 rounded-xl px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-cyan-400"
+                  value={fatsGoal}
+                  onChange={(e) => setFatsGoal(Math.max(1, Number(e.target.value)))}
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[10px] text-white/40 uppercase mb-1">Water Goal (L)</label>
+                <input
+                  type="number"
+                  step="0.5"
+                  className="w-full bg-black border border-white/10 rounded-xl px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-cyan-400"
+                  value={waterGoal}
+                  onChange={(e) => setWaterGoal(Math.max(0.5, Number(e.target.value)))}
+                />
+              </div>
+              <div className="col-span-2 md:col-span-1">
+                <label className="block font-mono text-[10px] text-white/40 uppercase mb-1">Active Time Goal (m)</label>
+                <input
+                  type="number"
+                  className="w-full bg-black border border-white/10 rounded-xl px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-cyan-400"
+                  value={activeTimeGoal}
+                  onChange={(e) => setActiveTimeGoal(Math.max(1, Number(e.target.value)))}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Master Grid Split: Visual Completion ring on the left, horizontal details with rapid logging buttons on the right */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left side: Overall Score Indicator */}
+            <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-zinc-900/30 rounded-2xl border border-white/5 text-center">
+              <div className="relative w-32 h-32 flex items-center justify-center mb-3">
+                {/* Visual completion ring using SVG */}
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  {/* Underlay Circle */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="rgba(255,255,255,0.05)"
+                    strokeWidth="8"
+                    fill="transparent"
+                  />
+                  {/* Progress Glow Background */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="#00E676"
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={251.2}
+                    strokeDashoffset={251.2 - (251.2 * averageCompletion) / 100}
+                    className="transition-all duration-700 ease-out opacity-20 filter blur-sm"
+                  />
+                  {/* Active Progress Circle */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="#00E676"
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={251.2}
+                    strokeDashoffset={251.2 - (251.2 * averageCompletion) / 100}
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-out"
+                  />
+                </svg>
+                {/* Numeric Overlays */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-mono text-3xl font-black text-white leading-none">
+                    {averageCompletion}%
+                  </span>
+                  <span className="font-mono text-[8px] text-[#00E676] tracking-wider mt-1 uppercase font-bold">
+                    AGGREGATE GOAL
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-1 w-full">
+                <div className="font-mono text-[11px] font-bold text-white uppercase flex items-center gap-1.5 justify-center">
+                  ENERGY QUOTA: {currentCalories} / {targetCalories} KCAL
+                </div>
+                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-2 max-w-[180px] mx-auto">
+                  <div 
+                    className="h-full bg-[#00E676] rounded-full transition-all duration-500" 
+                    style={{ width: `${totalCaloriesPercent}%` }} 
+                  />
+                </div>
+                <p className="font-mono text-[9px] text-white/40 mt-1 uppercase">
+                  {totalCaloriesPercent}% Energy Quota Achieved
+                </p>
+              </div>
+            </div>
+
+            {/* Right side: Detailed macro and goal horizontal tracker cards with quick log buttons */}
+            <div className="lg:col-span-8 space-y-4">
+              
+              {/* Protein Tracker */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5">
+                <div className="flex justify-between items-center mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded bg-emerald-400" />
+                    <span className="font-mono text-xs font-bold text-white uppercase">PROTEIN SYSTEM</span>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-emerald-400">
+                    {protein}g / {proteinGoal}g ({proteinPercent}%)
+                  </span>
+                </div>
+                
+                {/* Visual completion bar with shadow */}
+                <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-2 relative">
+                  <div 
+                    className="h-full bg-emerald-400 rounded-full transition-all duration-500"
+                    style={{ width: `${proteinPercent}%` }}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <span className="font-mono text-[8px] text-white/30 uppercase mr-1.5">Quick Fuel Log:</span>
+                  <button 
+                    type="button"
+                    onClick={() => setProtein(p => Math.min(proteinGoal + 100, p + 10))}
+                    className="px-2 py-1 bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-[10px] font-mono rounded text-white"
+                  >
+                    +10g
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setProtein(p => Math.min(proteinGoal + 100, p + 25))}
+                    className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-400 text-[10px] font-mono border border-emerald-500/20 rounded"
+                  >
+                    +25g (Whey Scoop)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setProtein(p => Math.min(proteinGoal + 100, p + 45))}
+                    className="px-2 py-1 bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-[10px] font-mono rounded text-white"
+                  >
+                    +45g (Chicken/Beef)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setProtein(0)}
+                    className="ml-auto px-1.5 py-1 text-[9px] font-mono text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 rounded uppercase"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {/* Carbohydrates Tracker */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5">
+                <div className="flex justify-between items-center mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded bg-amber-400" />
+                    <span className="font-mono text-xs font-bold text-white uppercase">CARBOHYDRATES</span>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-amber-400">
+                    {carbs}g / {carbsGoal}g ({carbsPercent}%)
+                  </span>
+                </div>
+
+                <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-2 relative">
+                  <div 
+                    className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                    style={{ width: `${carbsPercent}%` }}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <span className="font-mono text-[8px] text-white/30 uppercase mr-1.5">Quick Fuel Log:</span>
+                  <button 
+                    type="button"
+                    onClick={() => setCarbs(c => Math.min(carbsGoal + 150, c + 15))}
+                    className="px-2 py-1 bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-[10px] font-mono rounded text-white"
+                  >
+                    +15g
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setCarbs(c => Math.min(carbsGoal + 150, c + 40))}
+                    className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 transition-all text-amber-400 text-[10px] font-mono border border-amber-500/20 rounded"
+                  >
+                    +40g (Rice/Oats)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setCarbs(c => Math.min(carbsGoal + 150, c + 75))}
+                    className="px-2 py-1 bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-[10px] font-mono rounded text-white"
+                  >
+                    +75g (Pre-Workout Stack)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setCarbs(0)}
+                    className="ml-auto px-1.5 py-1 text-[9px] font-mono text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 rounded uppercase"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {/* Fats Tracker */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5">
+                <div className="flex justify-between items-center mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded bg-indigo-400" />
+                    <span className="font-mono text-xs font-bold text-white uppercase">HEALTHY FATS</span>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-indigo-400">
+                    {fats}g / {fatsGoal}g ({fatsPercent}%)
+                  </span>
+                </div>
+
+                <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-2 relative">
+                  <div 
+                    className="h-full bg-indigo-400 rounded-full transition-all duration-500"
+                    style={{ width: `${fatsPercent}%` }}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <span className="font-mono text-[8px] text-white/30 uppercase mr-1.5">Quick Fuel Log:</span>
+                  <button 
+                    type="button"
+                    onClick={() => setFats(f => Math.min(fatsGoal + 50, f + 5))}
+                    className="px-2 py-1 bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-[10px] font-mono rounded text-white"
+                  >
+                    +5g
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setFats(f => Math.min(fatsGoal + 50, f + 14))}
+                    className="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 active:scale-95 transition-all text-indigo-400 text-[10px] font-mono border border-indigo-500/20 rounded"
+                  >
+                    +14g (Olive oil)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setFats(f => Math.min(fatsGoal + 50, f + 22))}
+                    className="px-2 py-1 bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-[10px] font-mono rounded text-white"
+                  >
+                    +22g (Avocado)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setFats(0)}
+                    className="ml-auto px-1.5 py-1 text-[9px] font-mono text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 rounded uppercase"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {/* Hydration & Workload Row Split */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Water Intake Card */}
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-mono text-[10px] font-bold text-white uppercase flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                      HYDRATION INDEX
+                    </span>
+                    <span className="font-mono text-xs font-bold text-cyan-400">
+                      {water.toFixed(1)}L / {waterGoal.toFixed(1)}L
+                    </span>
+                  </div>
+
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-2 relative">
+                    <div 
+                      className="h-full bg-cyan-400 rounded-full transition-all duration-500"
+                      style={{ width: `${waterPercent}%` }}
+                    />
+                  </div>
+
+                  <div className="flex gap-1.5 items-center">
+                    <button 
+                      type="button"
+                      onClick={() => setWater(w => Math.min(waterGoal + 2, w + 0.25))}
+                      className="px-2 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/15 text-[10px] uppercase font-mono rounded hover:bg-cyan-500/20"
+                    >
+                      +250ml Glass
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setWater(w => Math.min(waterGoal + 2, w + 0.5))}
+                      className="px-2 py-1 bg-white/5 text-white hover:bg-white/10 text-[10px] uppercase font-mono rounded"
+                    >
+                      +500ml Shaker
+                    </button>
+                  </div>
+                </div>
+
+                {/* Exertion Active Timer Card */}
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-mono text-[10px] font-bold text-white uppercase flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      ACTIVE DRILL EXERTION
+                    </span>
+                    <span className="font-mono text-xs font-bold text-rose-400">
+                      {activeTime}m / {activeTimeGoal}m
+                    </span>
+                  </div>
+
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-2 relative">
+                    <div 
+                      className="h-full bg-rose-500 rounded-full transition-all duration-500"
+                      style={{ width: `${activePercent}%` }}
+                    />
+                  </div>
+
+                  <div className="flex gap-1.5 items-center">
+                    <button 
+                      type="button"
+                      onClick={() => setActiveTime(t => Math.min(activeTimeGoal + 120, t + 10))}
+                      className="px-2 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/15 text-[10px] uppercase font-mono rounded hover:bg-rose-500/20"
+                    >
+                      +10 Min
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setActiveTime(t => Math.min(activeTimeGoal + 120, t + 30))}
+                      className="px-2 py-1 bg-white/5 text-white hover:bg-white/10 text-[10px] uppercase font-mono rounded"
+                    >
+                      +30 Min
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
         </TacticalCard>
       </div>
 

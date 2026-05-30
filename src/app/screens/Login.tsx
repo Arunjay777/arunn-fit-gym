@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Dumbbell, User, Lock, Eye, EyeOff, Loader2, Play, Check, Flame, Trophy,
-  Clipboard, Users, Activity, Sparkles, ShieldCheck, ArrowLeft
+  Clipboard, Users, Activity, Sparkles, Zap, ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../components/ui/utils';
 import { registerFirebaseUser, loginFirebaseUser, loginWithGoogle } from '../lib/firebaseHelper';
+import FitXLogo from '../components/FitXLogo';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -234,7 +235,7 @@ export default function Login() {
             <div className="flex items-center gap-2 mb-2">
               <span className={cn("h-[2px] w-6 rounded-full", activeRole === 'user' ? "bg-cyan-400" : "bg-emerald-400")} />
               <span className="font-mono text-xs text-white/40 tracking-widest uppercase">
-                AJ-FIT CONSOLE TERMINAL
+                SIMATS FitX CONSOLE TERMINAL
               </span>
             </div>
           </div>
@@ -284,7 +285,7 @@ export default function Login() {
                   className="space-y-4"
                 >
                   <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold tracking-widest uppercase">
-                    <ShieldCheck className="w-4 h-4" />
+                    <Zap className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
                     Coach Program dispatcher
                   </div>
                   <h2 className="font-sans font-extrabold text-3xl xl:text-4xl text-white tracking-tight leading-tight uppercase">
@@ -360,38 +361,21 @@ export default function Login() {
           transition={{ duration: 0.5, ease: 'easeOut' }}
           className="w-full max-w-[420px] z-10"
         >
-          {/* Brand/Logo Section: Gym Dumbbell or Dynamic Coach Clipboard Icon */}
+          {/* Brand/Logo Section: Custom Dynamic FitX Muscle Pin Logo */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
-              <AnimatePresence mode="wait">
-                {activeRole === 'user' ? (
-                  <motion.div 
-                    key="athlete-logo"
-                    initial={{ scale: 0.8, opacity: 0, rotate: -30 }}
-                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                    exit={{ scale: 0.8, opacity: 0, rotate: 30 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.15)] text-cyan-400"
-                  >
-                    <Dumbbell className="w-8 h-8" />
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    key="coach-logo"
-                    initial={{ scale: 0.8, opacity: 0, rotate: -30 }}
-                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                    exit={{ scale: 0.8, opacity: 0, rotate: 30 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)] text-emerald-400"
-                  >
-                    <Clipboard className="w-8 h-8" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0, rotate: -15 }}
+                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                className="p-1 rounded-full bg-white/5 border border-white/10 shadow-[0_0_25px_rgba(255,107,0,0.25)] hover:scale-105 transition-transform"
+              >
+                <FitXLogo className="w-16 h-16 filter drop-shadow-[0_0_12px_rgba(255,107,0,0.45)]" />
+              </motion.div>
             </div>
             
             <h1 className="font-sans font-black text-2xl tracking-tight text-white uppercase leading-none">
-              AJ-FIT <span className={cn(activeRole === 'user' ? "text-cyan-400" : "text-emerald-400", "font-light")}>
+              SIMATS FitX <span className={cn(activeRole === 'user' ? "text-cyan-400" : "text-emerald-400", "font-light")}>
                 {activeRole === 'user' ? "ATHLETE" : "COACH"}
               </span>
             </h1>
@@ -672,7 +656,7 @@ export default function Login() {
                     activeRole === 'user' ? "text-cyan-400 hover:text-cyan-300" : "text-emerald-400 hover:text-emerald-300"
                   )}
                 >
-                  {isRegisterMode ? "← ALREADY REGISTERED? LOG IN PORTAL" : "NEW TO AJ-FIT? REGISTER AN ACCOUNT"}
+                  {isRegisterMode ? "← ALREADY REGISTERED? LOG IN PORTAL" : "NEW TO SIMATS FitX? REGISTER AN ACCOUNT"}
                 </button>
               </div>
 

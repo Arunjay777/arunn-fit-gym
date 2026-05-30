@@ -1,6 +1,7 @@
 import React from 'react';
 import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock, Library } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import FitXLogo from './FitXLogo';
 
 interface NavItem {
   icon: React.ElementType;
@@ -10,7 +11,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: Shield, label: 'Command', path: '/dashboard', category: 'core' },
+  { icon: Zap, label: 'Command', path: '/dashboard', category: 'core' },
   { icon: Target, label: 'Mission', path: '/mission' },
   { icon: Camera, label: 'Rep Counter', path: '/rep-counter' },
   { icon: Activity, label: 'Vitals', path: '/vitals' },
@@ -65,12 +66,8 @@ export default function CommandSidebar() {
          }}>
       {/* Logo - Hidden on mobile */}
       <div className="hidden lg:block mb-4">
-        <div className="w-12 h-12 flex items-center justify-center rounded"
-             style={{
-               background: 'linear-gradient(135deg, #00D4FF 0%, #00FF88 100%)',
-               boxShadow: '0 0 20px rgba(0, 212, 255, 0.3)',
-             }}>
-          <Shield className="w-7 h-7 text-[#030303]" />
+        <div className="w-12 h-12 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" onClick={() => navigate('/dashboard')}>
+          <FitXLogo className="w-10 h-10 filter drop-shadow-[0_0_8px_rgba(255,107,0,0.4)]" />
         </div>
       </div>
 

@@ -10,7 +10,7 @@ export default function Profile() {
 
   const [profileData, setProfileData] = useState({
     name: 'Alex Johnson',
-    email: 'alex@ajfit.com',
+    email: 'alex@simatsfitx.com',
     age: '28 years old',
     location: 'San Francisco, CA',
   });

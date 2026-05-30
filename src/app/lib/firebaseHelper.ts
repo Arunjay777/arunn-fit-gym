@@ -71,7 +71,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 // Convert username to a valid Firebase email securely
 export function usernameToEmail(username: string): string {
   if (username.includes('@')) return username.trim().toLowerCase();
-  return `${username.trim().toLowerCase()}@ajfit.com`;
+  return `${username.trim().toLowerCase()}@simatsfitx.com`;
 }
 
 // User Profile Entity shape
@@ -183,7 +183,7 @@ export async function loginWithGoogle(expectedRole: 'user' | 'admin'): Promise<U
       const defaultProfile: UserProfile = {
         uid: user.uid,
         username: user.displayName || user.email?.split('@')[0] || 'Athlete',
-        email: user.email || `${user.uid}@ajfit.com`,
+        email: user.email || `${user.uid}@simatsfitx.com`,
         role: expectedRole,
         joined: 'Just now',
         status: 'Active',
