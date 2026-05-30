@@ -79,6 +79,18 @@ export default function Login() {
     }
   };
 
+  const handleOfflineBypass = () => {
+    const isCoach = activeRole === 'admin';
+    const fallbackUsername = isCoach ? 'commander_prime' : 'operator_aj';
+    const fallbackUid = isCoach ? 'commander_prime_local' : 'operator_aj_local';
+    
+    localStorage.setItem('userRole', isCoach ? 'admin' : 'user');
+    localStorage.setItem('username', fallbackUsername);
+    localStorage.setItem('userId', fallbackUid);
+    
+    navigate('/dashboard');
+  };
+
   // Submit flow
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -584,7 +596,7 @@ export default function Login() {
                       </div>
 
                       {loginError.includes('OPERATION-NOT-ALLOWED') && (
-                        <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs font-sans text-amber-300 leading-normal space-y-2">
+                        <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs font-sans text-amber-300 leading-normal space-y-3">
                           <p className="font-bold uppercase tracking-wider text-[10px] text-amber-400 flex items-center gap-1">
                             <span>⚡ How to Enable Email/Password Auth:</span>
                           </p>
@@ -594,7 +606,48 @@ export default function Login() {
                             <li>Navigate to <strong>Authentication</strong> &rarr; <strong>Sign-in method</strong> tab.</li>
                             <li>Click <strong>Add new provider</strong>, select <strong>Email/Password</strong>, check <strong>Enable</strong>, and click <strong>Save</strong>.</li>
                           </ol>
-                          <p className="text-[10px] text-white/50 pt-1">After enabling, refresh this page and you'll be able to register instantly! Or use the Google Sign-In button below now.</p>
+                          
+                          <div className="pt-2 border-t border-white/5 space-y-2">
+                            <p className="text-[10px] text-white/50">
+                              💡 <strong>Immediate Developer Bypass:</strong> Don't want to configure Firebase right now? Click the button below to start exploring the full functional app instantly using a secure local sandbox account!
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleOfflineBypass}
+                              className="w-full py-2.5 px-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-sans font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                            >
+                              <Zap className="w-3.5 h-3.5 fill-black" />
+                              <span>Bypass & Launch App Instantly</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {loginError.includes('UNAUTHORIZED-DOMAIN') && (
+                        <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs font-sans text-amber-300 leading-normal space-y-3">
+                          <p className="font-bold uppercase tracking-wider text-[10px] text-amber-400 flex items-center gap-1">
+                            <span>⚡ How to Authorize this Developer Domain:</span>
+                          </p>
+                          <ol className="list-decimal pl-4 space-y-1 text-[11px] text-white/70">
+                            <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-cyan-400 hover:text-cyan-300">Firebase Console</a>.</li>
+                            <li>Select your project (<strong className="font-mono text-[10px] bg-white/10 px-1 rounded text-white">spheric-pact-38gvj</strong>).</li>
+                            <li>Go to <strong>Authentication</strong> &rarr; <strong>Settings</strong> tab.</li>
+                            <li>Scroll to <strong>Authorized domains</strong> and click <strong>Add domain</strong>.</li>
+                            <li>Enter current domain: <strong className="font-mono text-[11px] bg-white/10 px-1 rounded text-white select-all">{window.location.hostname}</strong> and save.</li>
+                          </ol>
+                          <div className="pt-2 border-t border-white/5 space-y-2">
+                            <p className="text-[10px] text-white/50">
+                              💡 <strong>Immediate Developer Bypass:</strong> Click the button below to bypass Firebase authentication entirely and start exploring the full app instantly!
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleOfflineBypass}
+                              className="w-full py-2.5 px-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-sans font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                            >
+                              <Zap className="w-3.5 h-3.5 fill-black" />
+                              <span>Bypass & Launch App Instantly</span>
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -667,7 +720,7 @@ export default function Login() {
                 <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", activeRole === 'user' ? "bg-cyan-400" : "bg-emerald-400")} />
               </div>
               
-              <div className="grid grid-cols-1">
+              <div className="grid grid-cols-2 gap-3">
                 {activeRole === 'user' ? (
                   <button
                     type="button"
@@ -676,7 +729,7 @@ export default function Login() {
                   >
                     <div className="min-w-0">
                       <span className="font-sans font-bold text-[9px] uppercase tracking-wider block">PREFILL ATHLETE</span>
-                      <span className="font-mono text-[9px] opacity-70 block truncate">ID: operator_aj</span>
+                      <span className="font-mono text-[9px] opacity-70 block truncate font-bold text-white">ID: operator_aj</span>
                     </div>
                     <Check className="w-4 h-4 text-cyan-400" />
                   </button>
@@ -688,11 +741,28 @@ export default function Login() {
                   >
                     <div className="min-w-0">
                       <span className="font-sans font-bold text-[9px] uppercase tracking-wider block">PREFILL COACH</span>
-                      <span className="font-mono text-[9px] opacity-70 block truncate">ID: commander_prime</span>
+                      <span className="font-mono text-[9px] opacity-70 block truncate font-bold text-white">ID: commander_prime</span>
                     </div>
                     <Check className="w-4 h-4 text-emerald-400" />
                   </button>
                 )}
+
+                <button
+                  type="button"
+                  onClick={handleOfflineBypass}
+                  className={cn(
+                    "p-2 rounded-xl text-left transition-all active:scale-95 flex items-center justify-between cursor-pointer border",
+                    activeRole === 'user'
+                      ? "bg-cyan-500/10 border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300"
+                      : "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-300"
+                  )}
+                >
+                  <div className="min-w-0">
+                    <span className="font-sans font-bold text-[9px] uppercase tracking-wider block">BYPASS AUTH</span>
+                    <span className="font-mono text-[9px] opacity-80 block truncate font-bold text-white">Local Sandbox Sandbox</span>
+                  </div>
+                  <Zap className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>

@@ -232,8 +232,15 @@ export default function RepCounter() {
     if (!cameraActive) return;
 
     if (detectorRef.current && videoRef.current) {
+      const video = videoRef.current;
+      // Ensure the video element is fully ready with active frames to avoid 0x0 texture size faults in TensorFlow setup
+      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+        requestRef.current = requestAnimationFrame(detect);
+        return;
+      }
+
       try {
-        const poses = await detectorRef.current.estimatePoses(videoRef.current);
+        const poses = await detectorRef.current.estimatePoses(video);
         drawPose(poses);
         
         if (poses.length > 0) {
