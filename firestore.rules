@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net (Pillar 4.1)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Global Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isCoach() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole() == 'admin';
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Validation Helpers (Pillar 2)
+    function isValidUserShape(data) {
+      return data.uid is string && data.uid.size() <= 128
+          && data.username is string && data.username.size() >= 2 && data.username.size() <= 100
+          && data.email is string && data.email.size() <= 150
+          && (data.role == 'user' || data.role == 'admin')
+          && (data.status == 'Active' || data.status == 'Suspended')
+          && data.injuryActive is bool
+          && data.focusWorkout is string && data.focusWorkout.size() <= 150;
+    }
+    
+    function isValidRecordShape(data) {
+      return data.uid is string && data.uid.size() <= 128
+          && data.username is string && data.username.size() <= 100
+          && data.date is string && data.date.size() <= 50
+          && data.type is string && data.type.size() <= 100
+          && data.duration is string && data.duration.size() <= 50
+          && data.volume is number;
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() 
+                    && isOwner(userId) 
+                    && isValidUserShape(incoming())
+                    && incoming().role == 'user'; // Anti-privilege escalation (Pillar 3/4)
+                    
+      allow update: if isSignedIn() && (
+        // Coach/Admin update overrides (Pillar 4)
+        isCoach() && isValidUserShape(incoming())
+        ||
+        // Athlete own modifications restricted (Pillar 4)
+        isOwner(userId) 
+        && isValidUserShape(incoming())
+        && incoming().role == existing().role
+        && incoming().status == existing().status
+        && incoming().email == existing().email
+      );
+      
+      allow delete: if isCoach();
+    }
+    
+    // Records collection rules
+    match /records/{recordId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // Coach/users check lists (forced query filtering by Firestore)
+      
+      allow create: if isSignedIn() 
+                    && incoming().uid == request.auth.uid 
+                    && isValidRecordShape(incoming());
+                    
+      allow update: if isSignedIn() 
+                    && isCoach();
+                    
+      allow delete: if isSignedIn() 
+                    && (resource.data.uid == request.auth.uid || isCoach());
+    }
+  }
+}

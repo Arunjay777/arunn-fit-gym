@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile in the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "joined": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Suspended"] },
+        "injuryActive": { "type": "boolean" },
+        "focusWorkout": { "type": "string" }
+      },
+      "required": ["uid", "username", "email", "role", "status"]
+    },
+    "Record": {
+      "title": "Workout Record",
+      "description": "Completed workout logged by an athlete",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "date": { "type": "string" },
+        "type": { "type": "string" },
+        "duration": { "type": "string" },
+        "volume": { "type": "number" },
+        "color": { "type": "string" },
+        "exercises": { 
+          "type": "array",
+          "description": "Logged exercises with sets and reps"
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "username", "date", "type", "duration", "volume"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of all user accounts and roles"
+    },
+    "records/{recordId}": {
+      "schema": "Record",
+      "description": "Collection of logged workout active sessions"
+    }
+  }
+}

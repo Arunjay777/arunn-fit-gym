@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../components/ui/utils';
+import { registerFirebaseUser, loginFirebaseUser } from '../lib/firebaseHelper';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -78,93 +79,92 @@ export default function Login() {
       setLoginError(null);
       setIsSubmitting(true);
 
-      // Registration Delay
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-
-      const registeredJson = localStorage.getItem('registeredUsers');
-      let registeredUsers = [];
-      if (registeredJson) {
-        try {
-          registeredUsers = JSON.parse(registeredJson);
-        } catch (err) {
-          registeredUsers = [];
-        }
-      }
-
-      // Check if username already exists in default list or registered list
-      const userExists = registeredUsers.some(
-        (u: any) => u.username.toLowerCase() === trimmedUsername.toLowerCase()
-      ) || (trimmedUsername.toLowerCase() === 'operator_aj') || (trimmedUsername.toLowerCase() === 'commander_prime');
-
-      if (userExists) {
+      try {
+        await registerFirebaseUser(trimmedUsername, trimmedPassword, activeRole);
         setIsSubmitting(false);
-        setLoginError('USERNAME ALREADY TAKEN');
-        return;
+        setRegSuccess('REGISTRATION SUCCESSFUL! CLOUD DEPLOY COMPLETE.');
+        
+        // Clear inputs and transition to login mode
+        setTimeout(() => {
+          setIsRegisterMode(false);
+          setRegSuccess(null);
+          setConfirmPassword('');
+        }, 1800);
+      } catch (err: any) {
+        setIsSubmitting(false);
+        let errorMsg = 'REGISTRATION FAILED';
+        if (err.message && (err.message.includes('email-already-in-use') || err.message.includes('already-exists'))) {
+          errorMsg = 'USERNAME ALREADY TAKEN';
+        } else if (err.message && err.message.includes('weak-password')) {
+          errorMsg = 'PASSWORD IS TOO WEAK (REQUIRES MIN 6 CHARACTERS)';
+        } else if (err.message) {
+          try {
+            // Check if nested JSON error (conforming to FirestoreErrorInfo) is inside
+            const parsed = JSON.parse(err.message);
+            errorMsg = parsed.error || errorMsg;
+          } catch {
+            errorMsg = err.message;
+          }
+        }
+        setLoginError(errorMsg.toUpperCase());
       }
-
-      // Safe registration
-      registeredUsers.push({
-        username: trimmedUsername,
-        password: trimmedPassword,
-        role: activeRole
-      });
-
-      localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-      
-      setIsSubmitting(false);
-      setRegSuccess('REGISTRATION SUCCESSFUL! DEPLOYED REGISTER.');
-      
-      // Clear inputs and transition to login mode
-      setTimeout(() => {
-        setIsRegisterMode(false);
-        setRegSuccess(null);
-        setConfirmPassword('');
-      }, 1800);
 
     } else {
       setLoginError(null);
       setIsSubmitting(true);
 
-      // Dynamic professional validation delay
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-
-      // Retrieve registered accounts list
-      const registeredJson = localStorage.getItem('registeredUsers');
-      let registeredUsers = [];
-      if (registeredJson) {
-        try {
-          registeredUsers = JSON.parse(registeredJson);
-        } catch (err) {
-          registeredUsers = [];
+      try {
+        const profile = await loginFirebaseUser(trimmedUsername, trimmedPassword, activeRole);
+        
+        // If login succeeded, persist local states and route to console
+        localStorage.setItem('userRole', profile.role);
+        localStorage.setItem('username', profile.username);
+        localStorage.setItem('userId', profile.uid);
+        
+        setIsSubmitting(false);
+        navigate('/dashboard');
+      } catch (err: any) {
+        // Automatic on-the-fly registration fallback for test accounts
+        if (
+          (trimmedUsername === 'operator_aj' && trimmedPassword === 'fitness2026') ||
+          (trimmedUsername === 'commander_prime' && trimmedPassword === 'admin_power')
+        ) {
+          try {
+            const u = await registerFirebaseUser(
+              trimmedUsername, 
+              trimmedPassword, 
+              trimmedUsername === 'commander_prime' ? 'admin' : 'user'
+            );
+            localStorage.setItem('userRole', u.role);
+            localStorage.setItem('username', u.username);
+            localStorage.setItem('userId', u.uid);
+            
+            setIsSubmitting(false);
+            navigate('/dashboard');
+            return;
+          } catch (regErr: any) {
+            console.error('Prefill registration failed', regErr);
+          }
         }
+
+        setIsSubmitting(false);
+        let errorMsg = `ACCESS DENIED: INVALID ${activeRole.toUpperCase()} CREDENTIALS`;
+        if (err.message) {
+          if (err.message.includes('DENIED') || err.message.includes('SUSPENDED')) {
+            errorMsg = err.message;
+          } else if (err.message.includes('user-not-found') || err.message.includes('wrong-password') || err.message.includes('invalid-credential')) {
+            errorMsg = `ACCESS DENIED: SPECIALIZED ${activeRole.toUpperCase()} ID PIN-CODE INVALID`;
+          } else {
+            try {
+              const parsed = JSON.parse(err.message);
+              errorMsg = parsed.error || errorMsg;
+            } catch {
+              errorMsg = err.message;
+            }
+          }
+        }
+        setLoginError(errorMsg.toUpperCase());
       }
-
-      // Match check
-      const matchedUser = registeredUsers.find(
-        (u: any) => u.username.toLowerCase() === trimmedUsername.toLowerCase() && 
-                   u.password === trimmedPassword && 
-                   u.role === activeRole
-      );
-
-      if (activeRole === 'admin') {
-        const isDefaultAdmin = trimmedUsername === 'commander_prime' && trimmedPassword === 'admin_power';
-        if (!isDefaultAdmin && !matchedUser) {
-          setIsSubmitting(false);
-          setLoginError('ACCESS DENIED: INVALID COACH CREDENTIALS');
-          return;
-        }
-      } else {
-        const isDefaultUser = trimmedUsername === 'operator_aj' && trimmedPassword === 'fitness2026';
-        if (!isDefaultUser && !matchedUser) {
-          setIsSubmitting(false);
-          setLoginError('ACCESS DENIED: INVALID ATHLETE CREDENTIALS');
-          return;
-        }
-      }
-
-      localStorage.setItem('userRole', activeRole);
-      setIsSubmitting(false);
-      navigate('/dashboard');
     }
   };
 

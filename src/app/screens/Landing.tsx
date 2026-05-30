@@ -597,7 +597,7 @@ export default function Landing() {
                   </div>
                   <div className="text-right">
                     <span className="font-mono text-3xl font-black text-white">
-                      {billingPeriod === 'monthly' ? '$14' : '$11'}
+                      {billingPeriod === 'monthly' ? '₹1,199' : '₹899'}
                     </span>
                     <span className="font-mono text-[9px] text-white/40 block">/ MONTH</span>
                   </div>
@@ -642,7 +642,7 @@ export default function Landing() {
                   </div>
                   <div className="text-right">
                     <span className="font-mono text-3xl font-black text-white">
-                      {billingPeriod === 'monthly' ? '$39' : '$31'}
+                      {billingPeriod === 'monthly' ? '₹3,299' : '₹2,599'}
                     </span>
                     <span className="font-mono text-[9px] text-white/40 block">/ MONTH</span>
                   </div>

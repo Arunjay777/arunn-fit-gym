@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TacticalHeader from '../components/TacticalHeader';
 import TacticalCard from '../components/TacticalCard';
 import { 
@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Athlete {
-  id: number;
+  id: string | number;
   name: string;
   email: string;
   joined: string;
@@ -30,163 +30,161 @@ interface ActivityLog {
 export default function Admin() {
   const [searchQuery, setSearchQuery] = useState('');
   const [logQuery, setLogQuery] = useState('');
-  
-  // Interactive roster of users under admin control
-  const [athletes, setAthletes] = useState<Athlete[]>([
-    { id: 1, name: 'John Smith', email: 'john@example.com', joined: '2 hours ago', status: 'Active', role: 'Athlete', injuryActive: false, focusWorkout: 'Hypertrophy Chest' },
-    { id: 2, name: 'Sarah Williams', email: 'sarah@example.com', joined: '5 hours ago', status: 'Active', role: 'Athlete', injuryActive: true, focusWorkout: 'Mobility Lower Body' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@example.com', joined: '1 day ago', status: 'Suspended', role: 'Athlete', injuryActive: false, focusWorkout: 'Power Lifting Splits' },
-    { id: 4, name: 'Emily Davis', email: 'emily@example.com', joined: '2 days ago', status: 'Active', role: 'Coach', injuryActive: false, focusWorkout: 'All-Around Performance' },
-    { id: 5, name: 'Chris Brown', email: 'chris@example.com', joined: '3 days ago', status: 'Active', role: 'Athlete', injuryActive: false, focusWorkout: 'Aerobic Endurance' },
-  ]);
-
-  // Read-only system activity log for security tracking
-  const [logs, setLogs] = useState<ActivityLog[]>([
-    { id: '1', action: 'Roster database initialized', targetUser: 'System', performedBy: 'Admin Node', timestamp: '2 hours ago', severity: 'info' },
-    { id: '2', action: 'Assigned coach access level code', targetUser: 'emily@example.com', performedBy: 'Admin Console', timestamp: '1 hour ago', severity: 'info' },
-    { id: '3', action: 'User suspended: Violation triggered', targetUser: 'mike@example.com', performedBy: 'Admin Console', timestamp: '45 mins ago', severity: 'warn' },
-    { id: '4', action: 'Cleared active injury status', targetUser: 'john@example.com', performedBy: 'Admin Console', timestamp: '15 mins ago', severity: 'info' },
-  ]);
+  const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [newAthleteName, setNewAthleteName] = useState('');
   const [newAthleteEmail, setNewAthleteEmail] = useState('');
   const [newAthleteFocus, setNewAthleteFocus] = useState('Hypertrophy Chest');
   const [newAthleteRole, setNewAthleteRole] = useState<'Athlete' | 'Coach'>('Athlete');
 
-  // Add athlete to roster
-  const handleAddAthlete = (e: React.FormEvent) => {
+  // Load and subscribe/sync elements from Firestore
+  useEffect(() => {
+    let active = true;
+
+    const loadData = async () => {
+      try {
+        const { getRosterUsers, getWorkoutRecords } = await import('../lib/firebaseHelper');
+        const [users, firebaseRecords] = await Promise.all([
+          getRosterUsers(),
+          getWorkoutRecords()
+        ]);
+
+        if (!active) return;
+
+        const convertedAthletes: Athlete[] = users.map(u => ({
+          id: u.uid,
+          name: u.username,
+          email: u.email,
+          joined: u.joined || 'Offline Sync',
+          status: u.status || 'Active',
+          role: u.role === 'admin' ? 'Coach' : 'Athlete',
+          injuryActive: u.injuryActive || false,
+          focusWorkout: u.focusWorkout || 'Hypertrophy Chest'
+        }));
+
+        setAthletes(convertedAthletes);
+        setRecords(firebaseRecords || []);
+      } catch (err) {
+        console.error("Error reading portal data elements:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadData();
+    // Fetch feed every 4 seconds to assure real-time roster & workout metrics
+    const timer = setInterval(loadData, 4000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, []);
+
+  // Add user manually via Coach console
+  const handleAddAthlete = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAthleteName.trim() || !newAthleteEmail.trim()) return;
 
-    const newClient: Athlete = {
-      id: Date.now(),
-      name: newAthleteName,
-      email: newAthleteEmail,
-      joined: 'Just now',
-      status: 'Active',
-      role: newAthleteRole,
-      injuryActive: false,
-      focusWorkout: newAthleteFocus
-    };
+    const mockUsername = newAthleteName.replace(/\s+/g, '_').toLowerCase();
 
-    setAthletes([newClient, ...athletes]);
-    setNewAthleteName('');
-    setNewAthleteEmail('');
+    try {
+      const { registerFirebaseUser, updateTacticalUser } = await import('../lib/firebaseHelper');
+      // Create official secure account (mapped to @ajfit.com internally) with default password on the fly
+      const registree = await registerFirebaseUser(
+        mockUsername, 
+        'fitness2026', 
+        newAthleteRole === 'Coach' ? 'admin' : 'user'
+      );
 
-    // Append to read-only security logs
-    const logEntry: ActivityLog = {
-      id: Date.now().toString(),
-      action: `Created new ${newAthleteRole.toLowerCase()} account`,
-      targetUser: newAthleteEmail,
-      performedBy: 'Admin Console',
-      timestamp: 'Just now',
-      severity: 'info'
-    };
-    setLogs(prev => [logEntry, ...prev]);
+      // Re-update full visual configurations
+      await updateTacticalUser(registree.uid, {
+        username: newAthleteName,
+        email: newAthleteEmail.toLowerCase(),
+        focusWorkout: newAthleteFocus
+      });
+
+      // Clear layout elements
+      setNewAthleteName('');
+      setNewAthleteEmail('');
+    } catch (err) {
+      console.error("Failed to manual provision athlete:", err);
+    }
   };
 
-  // Delete user
-  const handleDeleteAthlete = (id: number) => {
-    const target = athletes.find(a => a.id === id);
-    if (!target) return;
-
-    setAthletes(athletes.filter(a => a.id !== id));
-
-    // Append to read-only security logs
-    const logEntry: ActivityLog = {
-      id: Date.now().toString(),
-      action: `Removed user roster entry (${target.role})`,
-      targetUser: target.email,
-      performedBy: 'Admin Console',
-      timestamp: 'Just now',
-      severity: 'critical'
-    };
-    setLogs(prev => [logEntry, ...prev]);
+  // Delete user roster entry
+  const handleDeleteAthlete = async (id: string | number) => {
+    try {
+      const { deleteUserAccount } = await import('../lib/firebaseHelper');
+      await deleteUserAccount(String(id));
+      setAthletes(prev => prev.filter(a => a.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Change user role (Athlete <-> Coach)
-  const handleToggleRole = (id: number) => {
+  const handleToggleRole = async (id: string | number) => {
     const target = athletes.find(a => a.id === id);
     if (!target) return;
 
-    const nextRole = target.role === 'Athlete' ? 'Coach' : 'Athlete';
-
-    setAthletes(athletes.map(a => {
-      if (a.id === id) {
-        return { 
-          ...a, 
-          role: nextRole
-        };
-      }
-      return a;
-    }));
-
-    // Append to read-only security logs
-    const logEntry: ActivityLog = {
-      id: Date.now().toString(),
-      action: `Swapped role level to ${nextRole.toUpperCase()}`,
-      targetUser: target.email,
-      performedBy: 'Admin Console',
-      timestamp: 'Just now',
-      severity: 'info'
-    };
-    setLogs(prev => [logEntry, ...prev]);
+    const nextRole = target.role === 'Athlete' ? 'admin' : 'user';
+    try {
+      const { updateTacticalUser } = await import('../lib/firebaseHelper');
+      await updateTacticalUser(String(id), { role: nextRole });
+      setAthletes(prev => prev.map(a => a.id === id ? { ...a, role: target.role === 'Athlete' ? 'Coach' : 'Athlete' } : a));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Suspend/Ban user toggle
-  const handleToggleStatus = (id: number) => {
+  const handleToggleStatus = async (id: string | number) => {
     const target = athletes.find(a => a.id === id);
     if (!target) return;
 
     const nextStatus = target.status === 'Active' ? 'Suspended' : 'Active';
-
-    setAthletes(athletes.map(a => {
-      if (a.id === id) {
-        return { 
-          ...a, 
-          status: nextStatus
-        };
-      }
-      return a;
-    }));
-
-    // Append to read-only security logs
-    const logEntry: ActivityLog = {
-      id: Date.now().toString(),
-      action: nextStatus === 'Suspended' ? 'Suspended user account access' : 'Restored user account access',
-      targetUser: target.email,
-      performedBy: 'Admin Console',
-      timestamp: 'Just now',
-      severity: nextStatus === 'Suspended' ? 'warn' : 'info'
-    };
-    setLogs(prev => [logEntry, ...prev]);
+    try {
+      const { updateTacticalUser } = await import('../lib/firebaseHelper');
+      await updateTacticalUser(String(id), { status: nextStatus });
+      setAthletes(prev => prev.map(a => a.id === id ? { ...a, status: nextStatus } : a));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Toggle injury warnings
-  const handleToggleInjury = (id: number) => {
+  const handleToggleInjury = async (id: string | number) => {
     const target = athletes.find(a => a.id === id);
     if (!target) return;
 
-    const nextState = !target.injuryActive;
-
-    setAthletes(athletes.map(a => {
-      if (a.id === id) {
-        return { ...a, injuryActive: nextState };
-      }
-      return a;
-    }));
-
-    // Append to read-only security logs
-    const logEntry: ActivityLog = {
-      id: Date.now().toString(),
-      action: nextState ? 'Flagged active user injury warning' : 'Cleared user injury warning flags',
-      targetUser: target.email,
-      performedBy: 'Admin Console',
-      timestamp: 'Just now',
-      severity: nextState ? 'warn' : 'info'
-    };
-    setLogs(prev => [logEntry, ...prev]);
+    const nextInjuryState = !target.injuryActive;
+    try {
+      const { updateTacticalUser } = await import('../lib/firebaseHelper');
+      await updateTacticalUser(String(id), { injuryActive: nextInjuryState });
+      setAthletes(prev => prev.map(a => a.id === id ? { ...a, injuryActive: nextInjuryState } : a));
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  // Map database elements together to construct our beautiful scrolling live training feed
+  const systemLogs: ActivityLog[] = [
+    { id: 'initial-audit-node', action: 'Live Firestore cloud syncing active', targetUser: 'Firestore Cluster', performedBy: 'System Console', timestamp: 'Live', severity: 'info' },
+    ...records.map((r, index) => {
+      // Highlight high volume achievements in visual alerts
+      const heavyLiftHighlight = r.volume > 15000;
+      return {
+        id: r.id || `record-${index}-${r.createdAt}`,
+        action: `Logged training session: ${r.type} (${r.volume.toLocaleString()} LBS, ${r.duration})`,
+        targetUser: r.username,
+        performedBy: 'Athlete terminal',
+        timestamp: r.date || 'Today',
+        severity: heavyLiftHighlight ? 'critical' : 'info' as any
+      };
+    })
+  ];
 
   const filteredAthletes = athletes.filter(a => 
     a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -194,7 +192,7 @@ export default function Admin() {
     a.focusWorkout.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredLogs = logs.filter(l => 
+  const filteredLogs = systemLogs.filter(l => 
     l.action.toLowerCase().includes(logQuery.toLowerCase()) ||
     l.targetUser.toLowerCase().includes(logQuery.toLowerCase()) ||
     l.performedBy.toLowerCase().includes(logQuery.toLowerCase())
@@ -580,7 +578,7 @@ export default function Admin() {
             </table>
           </div>
           <div className="mt-4 pt-3 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[10px] text-white/30">
-            <span>SHOWING {filteredLogs.length} OF {logs.length} AUDIT LOG ENTRIES</span>
+            <span>SHOWING {filteredLogs.length} OF {systemLogs.length} AUDIT LOG ENTRIES</span>
             <span className="text-emerald-400 font-bold select-none flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
               • SECURE READ ONLY REPLICA REGISTER

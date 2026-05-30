@@ -112,6 +112,33 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Intercept localStorage sets to automatically sync client workout completions to Firestore
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      originalSetItem.apply(this, arguments as any);
+      if (key === 'custom_workout_history') {
+        try {
+          const history = JSON.parse(value);
+          if (history && history.length > 0) {
+            const latestSession = history[0];
+            // Log workout securely to Firestore in background
+            import('./lib/firebaseHelper').then(({ logWorkoutRecord }) => {
+              logWorkoutRecord(latestSession);
+            }).catch(err => {
+              console.error("Failed to load firebase sync helper:", err);
+            });
+          }
+        } catch (e) {
+          console.error("Local storage sync to Firebase failed:", e);
+        }
+      }
+    };
+    return () => {
+      localStorage.setItem = originalSetItem;
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       <MainLayout>

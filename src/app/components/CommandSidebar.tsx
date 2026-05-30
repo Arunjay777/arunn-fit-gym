@@ -38,6 +38,10 @@ export default function CommandSidebar() {
   const handleLogout = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('username');
+    localStorage.removeItem('userId');
+    import('../lib/firebase').then(({ auth }) => {
+      auth.signOut().catch(err => console.error(err));
+    }).catch(err => console.error(err));
     navigate('/login');
   };
 
