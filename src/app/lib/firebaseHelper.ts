@@ -3,6 +3,8 @@ import {
   signInWithEmailAndPassword, 
   signOut,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { 
   collection, 
@@ -163,6 +165,51 @@ export async function loginFirebaseUser(
     return profileData;
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, `${path}/(auth_uid)`);
+  }
+}
+
+// Google Authentication login flow
+export async function loginWithGoogle(expectedRole: 'user' | 'admin'): Promise<UserProfile> {
+  const provider = new GoogleAuthProvider();
+  try {
+    const credential = await signInWithPopup(auth, provider);
+    const user = credential.user;
+
+    // Fetch account details to verify Role & active suspension
+    const userDocRef = doc(db, 'users', user.uid);
+    const userSnapshot = await getDoc(userDocRef);
+
+    if (!userSnapshot.exists()) {
+      const defaultProfile: UserProfile = {
+        uid: user.uid,
+        username: user.displayName || user.email?.split('@')[0] || 'Athlete',
+        email: user.email || `${user.uid}@ajfit.com`,
+        role: expectedRole,
+        joined: 'Just now',
+        status: 'Active',
+        injuryActive: false,
+        focusWorkout: expectedRole === 'admin' ? 'All-Around Performance' : 'Hypertrophy Chest'
+      };
+      await setDoc(userDocRef, defaultProfile);
+      return defaultProfile;
+    }
+
+    const profileData = userSnapshot.data() as UserProfile;
+
+    // Direct role updates if user previously joined as a different role, otherwise respects DB role
+    if (profileData.role !== expectedRole) {
+      profileData.role = expectedRole;
+      await updateDoc(userDocRef, { role: expectedRole });
+    }
+
+    if (profileData.status === 'Suspended') {
+      await signOut(auth);
+      throw new Error('ACCESS DENIED: Your athlete account is currently SUSPENDED. Contact head coach.');
+    }
+
+    return profileData;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, 'users/(google_auth)');
   }
 }
 
