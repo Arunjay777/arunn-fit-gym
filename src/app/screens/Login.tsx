@@ -12,6 +12,7 @@ import FitXLogo from '../components/FitXLogo';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isIframe] = useState(() => typeof window !== 'undefined' && window.self !== window.top);
   
   // State variables for credentials
   const [username, setUsername] = useState('');
@@ -26,6 +27,50 @@ export default function Login() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isRegisterMode, setIsRegisterMode] = useState<boolean>(!!location.state?.register);
   const [regSuccess, setRegSuccess] = useState<string | null>(null);
+
+  // Dynamic configuration overrides (for enabling Google Sign-In with full Owner Access)
+  const [showCustomConfig, setShowCustomConfig] = useState(false);
+  const [customConfigInput, setCustomConfigInput] = useState(() => {
+    return localStorage.getItem('fitx_custom_firebase_config') || '';
+  });
+  const [configSuccess, setConfigSuccess] = useState<string | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  const handleApplyCustomConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    setConfigError(null);
+    setConfigSuccess(null);
+    try {
+      if (!customConfigInput.trim()) {
+        localStorage.removeItem('fitx_custom_firebase_config');
+        setConfigSuccess('DEFAULT CONNECTIONS RESTORED! REBOOTING SYSTEM...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+        return;
+      }
+      const parsed = JSON.parse(customConfigInput);
+      if (!parsed.apiKey || !parsed.authDomain || !parsed.projectId) {
+        throw new Error('Config JSON is missing required fields (apiKey, authDomain, projectId)');
+      }
+      localStorage.setItem('fitx_custom_firebase_config', JSON.stringify(parsed));
+      setConfigSuccess('OVERRIDE APPLIED SUCCESSFULLY! REBOOTING SYSTEM...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1200);
+    } catch (err: any) {
+      setConfigError(err.message || 'INVALID JSON. Copy-paste directly from Firebase Web App Settings.');
+    }
+  };
+
+  const handleResetDefaultConfig = () => {
+    localStorage.removeItem('fitx_custom_firebase_config');
+    setCustomConfigInput('');
+    setConfigSuccess('DEFAULT CONNECTIONS RESTORED! REBOOTING SYSTEM...');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1200);
+  };
 
   const handleGoogleSignIn = async () => {
     setLoginError(null);
@@ -713,6 +758,104 @@ export default function Login() {
                     </svg>
                     <span>SIGN IN WITH GOOGLE</span>
                   </button>
+
+                  {/* Iframe escape button */}
+                  {isIframe && (
+                    <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs font-sans text-cyan-200 leading-normal space-y-2 mt-3 shadow-md shadow-cyan-500/5">
+                      <p className="font-bold uppercase tracking-wider text-[10px] text-cyan-400 flex items-center gap-1.5">
+                        <span>💡 Running inside Sandbox Iframe:</span>
+                      </p>
+                      <p className="text-[10px] text-white/70">
+                        To enable seamless Google Sign-In and avoid embedded-browser restrictions, please run this applet in its own full window.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => window.open(window.location.href, '_blank')}
+                        className="w-full py-2 px-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-sans font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                        id="open-new-tab-btn"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="15 3 21 3 21 9"></polyline>
+                          <line x1="10" y1="14" x2="21" y2="3"></line>
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        </svg>
+                        <span>Open App in New Tab / Separate Window</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Custom Firebase Override Configurator */}
+                  <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomConfig(!showCustomConfig)}
+                      className="w-full py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-mono uppercase tracking-wider text-white/70 flex items-center justify-between transition-colors border border-white/10 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>⚙️</span>
+                        <span>Custom Firebase Database Override</span>
+                      </div>
+                      <span className={cn("font-bold font-sans text-[9px]", localStorage.getItem('fitx_custom_firebase_config') ? 'text-cyan-400' : 'text-white/40')}>
+                        {localStorage.getItem('fitx_custom_firebase_config') ? '● ACTIVE OVERRIDE' : 'CONFIUGURE'}
+                      </span>
+                    </button>
+
+                    {showCustomConfig && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-3 font-sans text-xs text-white/80"
+                      >
+                        <p className="text-[9.5px] text-white/50 leading-relaxed font-sans">
+                          If you lack owner permissions to enable Google Sign-In or Email auth in the default Firebase project, paste your own Firebase Web app config JSON below. This will point all athlete rosters, metrics, and operations safely to your own personal secure sandbox.
+                        </p>
+
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-[9px] font-mono uppercase text-white/40 mb-1">Firebase Config Web App SDK JSON:</label>
+                            <textarea
+                              rows={5}
+                              value={customConfigInput}
+                              onChange={(e) => setCustomConfigInput(e.target.value)}
+                              placeholder={`{\n  "apiKey": "AIzaSy...",\n  "authDomain": "your-app.firebaseapp.com",\n  "projectId": "your-app",\n  "storageBucket": "your-app.firebasestorage.app",\n  "messagingSenderId": "...",\n  "appId": "..."\n}`}
+                              className="w-full p-2.5 bg-black/60 border border-white/10 rounded-lg text-[10px] font-mono text-cyan-300 placeholder-white/20 focus:outline-none focus:border-cyan-500/50 resize-y"
+                            />
+                          </div>
+
+                          {configError && (
+                            <div className="text-[10px] text-rose-400 uppercase tracking-wider bg-rose-500/10 p-2 rounded-lg border border-rose-500/20 font-bold">
+                              ⚠️ {configError}
+                            </div>
+                          )}
+
+                          {configSuccess && (
+                            <div className="text-[10px] text-emerald-400 uppercase tracking-widest bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 font-bold">
+                              ✓ {configSuccess}
+                            </div>
+                          )}
+
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={handleApplyCustomConfig}
+                              className="flex-1 py-1.5 px-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-sans font-extrabold text-[10px] uppercase tracking-wider transition-all shadow-md cursor-pointer active:scale-95"
+                            >
+                              Apply Config
+                            </button>
+                            {localStorage.getItem('fitx_custom_firebase_config') && (
+                              <button
+                                type="button"
+                                onClick={handleResetDefaultConfig}
+                                className="py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 font-sans font-semibold text-[10px] uppercase tracking-wider transition-all border border-white/10 cursor-pointer active:scale-95"
+                              >
+                                Reset Defaults
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
                 </motion.form>
               )}
             </AnimatePresence>
