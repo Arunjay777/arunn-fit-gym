@@ -59,6 +59,7 @@ import SocialFeed from './screens/SocialFeed';
 import TrainingPartners from './screens/TrainingPartners';
 import DietPlan from './screens/DietPlan';
 import Admin from './screens/Admin';
+import SeleniumQA from './screens/SeleniumQA';
 
 // Protected Route Component
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'user' | 'admin' }) {
@@ -200,6 +201,7 @@ export default function App() {
           <Route path="/tools/library" element={<ProtectedRoute><ExerciseLibrary /></ProtectedRoute>} />
           <Route path="/tools/builder" element={<ProtectedRoute><WorkoutBuilder /></ProtectedRoute>} />
           <Route path="/tools/custom" element={<ProtectedRoute><CustomProtocols /></ProtectedRoute>} />
+          <Route path="/tools/selenium-qa" element={<ProtectedRoute><SeleniumQA /></ProtectedRoute>} />
 
           {/* Phase & Recovery Routes */}
           <Route path="/phases" element={<ProtectedRoute><TrainingPhases /></ProtectedRoute>} />

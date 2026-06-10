@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock, Library } from 'lucide-react';
+import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock, Library, FileSpreadsheet } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import FitXLogo from './FitXLogo';
 
@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
   { icon: Headphones, label: 'Audio', path: '/audio' },
   { icon: User, label: 'Profile', path: '/profile' },
   { icon: Lock, label: 'Admin', path: '/admin' },
+  { icon: FileSpreadsheet, label: 'Selenium QA', path: '/tools/selenium-qa' },
   { icon: Settings, label: 'Config', path: '/settings' },
 ];
 

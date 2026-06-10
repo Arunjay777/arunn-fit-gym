@@ -541,6 +541,7 @@ export default function Login() {
                       </span>
                       <input 
                         type="text" 
+                        id="username"
                         value={username} 
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder={activeRole === 'user' ? "e.g. operator_aj" : "e.g. commander_prime"}
@@ -563,6 +564,7 @@ export default function Login() {
                       </span>
                       <input 
                         type={showPassword ? 'text' : 'password'} 
+                        id="password"
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="•••••••••"

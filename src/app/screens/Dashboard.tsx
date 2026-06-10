@@ -1047,6 +1047,31 @@ export default function Dashboard() {
         </TacticalCard>
       </div>
 
+      {/* Selenium QA Automation Banner */}
+      <div className="mb-6">
+        <TacticalCard className="border border-purple-500/30 bg-purple-950/10" glow>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.8)]" />
+                <h3 className="font-mono font-bold text-sm text-purple-400 tracking-wider uppercase">
+                  SELENIUM AUTOMATED QUALITY TEST MATRIX CORES
+                </h3>
+              </div>
+              <p className="font-mono text-[10px] text-white/50 uppercase">
+                INTEGRATED CONTROLLERS VERIFYING FORM ROUTING ELEMENTS AND SECURE EXCEL LOG GENERATORS
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/tools/selenium-qa')}
+              className="px-5 py-2 rounded-xl bg-purple-500 text-white font-mono text-xs font-bold hover:bg-purple-400 active:scale-95 transition-all shadow-[0_0_20px_rgba(168,85,247,0.3)] cursor-pointer"
+            >
+              LAUNCH QA SUITE & DOWNLOAD EXCEL
+            </button>
+          </div>
+        </TacticalCard>
+      </div>
+
       {/* AI Messages */}
       <TacticalCard glow>
         <div className="mb-4 flex items-center gap-2">
