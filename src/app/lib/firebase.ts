@@ -49,8 +49,9 @@ export const auth: any = {
 // Sync auth state changes across different parts of the application instantly
 if (typeof window !== 'undefined') {
   const originalSetItem = localStorage.setItem;
-  localStorage.setItem = function (key, value) {
-    originalSetItem.apply(this, arguments as any);
+  localStorage.setItem = function (...args: any[]) {
+    originalSetItem.apply(this, args as any);
+    const key = args[0];
     if (key === 'userId' || key === 'username') {
       setTimeout(() => {
         const u = auth.currentUser;
@@ -59,8 +60,9 @@ if (typeof window !== 'undefined') {
     }
   };
   const originalRemoveItem = localStorage.removeItem;
-  localStorage.removeItem = function (key) {
-    originalRemoveItem.apply(this, arguments as any);
+  localStorage.removeItem = function (...args: any[]) {
+    originalRemoveItem.apply(this, args as any);
+    const key = args[0];
     if (key === 'userId' || key === 'username') {
       setTimeout(() => {
         const u = auth.currentUser;

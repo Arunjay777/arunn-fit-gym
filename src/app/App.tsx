@@ -115,8 +115,10 @@ export default function App() {
   useEffect(() => {
     // Intercept localStorage sets to automatically sync client workout completions to Firestore
     const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
-      originalSetItem.apply(this, arguments as any);
+    localStorage.setItem = function(...args: any[]) {
+      originalSetItem.apply(this, args as any);
+      const key = args[0];
+      const value = args[1];
       if (key === 'custom_workout_history') {
         try {
           const history = JSON.parse(value);

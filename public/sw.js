@@ -1,4 +1,4 @@
-const CACHE_NAME = "fitx-cache-v1";
+const CACHE_NAME = "fitx-cache-v2";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -35,23 +35,24 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch Interceptor
+// Fetch Interceptor: Network-First Strategy to avoid blank screens with updating asset hashes
 self.addEventListener("fetch", (event) => {
   // Only intercept HTTP/S requests
   if (!event.request.url.startsWith("http")) return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        // Cache dynamic assets if they are successful static assets from our origin
+    fetch(event.request)
+      .then((networkResponse) => {
+        // If we got a valid response, cache it dynamically for offline fallback
         if (
           networkResponse &&
           networkResponse.status === 200 &&
           networkResponse.type === "basic" &&
-          (event.request.url.includes(".js") || event.request.url.includes(".css") || event.request.url.includes(".png"))
+          (event.request.url.includes(".js") || 
+           event.request.url.includes(".css") || 
+           event.request.url.includes(".png") || 
+           event.request.url.endsWith("/") ||
+           event.request.url.includes("index.html"))
         ) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -59,10 +60,16 @@ self.addEventListener("fetch", (event) => {
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // Graceful offline fallback
-        return caches.match("/");
-      });
-    })
+      })
+      .catch(() => {
+        // Safe offline fallback: serve from cache if network fails
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Default offline index fallback
+          return caches.match("/");
+        });
+      })
   );
 });
