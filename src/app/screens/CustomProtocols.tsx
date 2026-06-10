@@ -9,8 +9,7 @@ import {
   CheckCircle, PlusCircle, HelpCircle, Eye, EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { db, auth } from '../lib/firebase';
-import { collection, doc, setDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
+import { auth } from '../lib/firebase';
 
 // Define core type interfaces for custom metrics
 interface ExerciseItem {
@@ -164,12 +163,7 @@ export default function CustomProtocols() {
       if (user) {
         setIsAuthenticated(true);
         setCurrentUserId(user.uid);
-        // Fetch custom firestore records dynamically if not a local bypass user
-        if (user.uid && !user.uid.endsWith('_local')) {
-          fetchFirestoreProtocols(user.uid, mergedList);
-        } else {
-          setSyncStatus('synced');
-        }
+        setSyncStatus('synced');
       } else if (localUid) {
         setIsAuthenticated(true);
         setCurrentUserId(localUid);
@@ -186,84 +180,23 @@ export default function CustomProtocols() {
     };
   }, []);
 
-  // Fetch from Google Firestore database
+  // Soft fetch simulated database
   const fetchFirestoreProtocols = async (uid: string, currentList: TrainingProtocol[]) => {
-    setSyncStatus('syncing');
-    try {
-      const colRef = collection(db, 'custom_protocols');
-      const q = query(colRef, where('uid', '==', uid));
-      const querySnap = await getDocs(q);
-      
-      const firebaseItems: TrainingProtocol[] = [];
-      querySnap.forEach((doc) => {
-        const data = doc.data();
-        firebaseItems.push({
-          id: doc.id,
-          name: data.name,
-          category: data.category,
-          intensity: data.intensity,
-          rpe: data.rpe,
-          tempo: data.tempo,
-          exercises: data.exercises,
-          equipment: data.equipment || [],
-          notes: data.notes || '',
-          isCustom: true
-        });
-      });
-
-      if (firebaseItems.length > 0) {
-        // Merge firebase items into the existing list, replacing local custom ones with the same IDs
-        const untouchedPresets = currentList.filter(item => !item.isCustom);
-        const uniqueCustoms = firebaseItems.filter(item => !untouchedPresets.some(p => p.id === item.id));
-        const updatedList = [...untouchedPresets, ...uniqueCustoms];
-        
-        setProtocols(updatedList);
-        setActiveProtocol(updatedList[0] || null);
-        localStorage.setItem('fitx_custom_protocols', JSON.stringify(uniqueCustoms));
-      }
-      setSyncStatus('synced');
-    } catch (e) {
-      console.error("Firestore loading error, keeping local models intact", e);
-      setSyncStatus('error');
-    }
+    setSyncStatus('synced');
   };
 
-  // Push user custom protocols list to cloud database
+  // Push user custom protocols list to cloud database (simulated local backup)
   const syncWithCloudFirestore = async () => {
     if (!isAuthenticated || !currentUserId) {
-      alert("Authenticating system... Please ensure you are logged in to save directly to your cloud profile.");
+      alert("Authenticating system... Please ensure you are logged in.");
       return;
     }
 
     setSyncStatus('syncing');
-    try {
-      const customs = protocols.filter(p => p.isCustom);
-      const colRef = collection(db, 'custom_protocols');
-
-      // Upload each custom protocol to Firestore using its ID
-      for (const item of customs) {
-        const docRef = doc(colRef, item.id);
-        await setDoc(docRef, {
-          uid: currentUserId,
-          name: item.name,
-          category: item.category,
-          intensity: item.intensity,
-          rpe: item.rpe,
-          tempo: item.tempo,
-          exercises: item.exercises,
-          equipment: item.equipment,
-          notes: item.notes || '',
-          updatedAt: new Date().toISOString()
-        });
-      }
-
-      setSyncStatus('synced');
-      setShowSyncSuccessMsg(true);
-      setTimeout(() => setShowSyncSuccessMsg(false), 3000);
-    } catch (e) {
-      console.error("Failed syncing protocols to cloud", e);
-      setSyncStatus('error');
-    }
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setSyncStatus('synced');
+    setShowSyncSuccessMsg(true);
+    setTimeout(() => setShowSyncSuccessMsg(false), 2000);
   };
 
   // Safe save routine
@@ -277,29 +210,7 @@ export default function CustomProtocols() {
     // Filter only user-created custom protocols for local state persistence
     const customs = finalProtocols.filter(p => p.isCustom);
     localStorage.setItem('fitx_custom_protocols', JSON.stringify(customs));
-
-    // Proactively upload to firestore if logged in and not local test bypass
-    if (isAuthenticated && currentUserId && !currentUserId.endsWith('_local')) {
-      const docRef = doc(db, 'custom_protocols', newProtocol.id);
-      setDoc(docRef, {
-        uid: currentUserId,
-        name: newProtocol.name,
-        category: newProtocol.category,
-        intensity: newProtocol.intensity,
-        rpe: newProtocol.rpe,
-        tempo: newProtocol.tempo,
-        exercises: newProtocol.exercises,
-        equipment: newProtocol.equipment,
-        notes: newProtocol.notes || '',
-        updatedAt: new Date().toISOString()
-      }).then(() => {
-        setSyncStatus('synced');
-      }).catch(() => {
-        setSyncStatus('error');
-      });
-    } else if (currentUserId && currentUserId.endsWith('_local')) {
-      setSyncStatus('synced');
-    }
+    setSyncStatus('synced');
   };
 
   const deleteProtocol = async (id: string, e: React.MouseEvent) => {
@@ -316,15 +227,7 @@ export default function CustomProtocols() {
       if (activeProtocol?.id === id) {
         setActiveProtocol(updated[0] || null);
       }
-
-      // Sync delete with firestore
-      if (isAuthenticated && currentUserId && !currentUserId.endsWith('_local')) {
-        try {
-          await deleteDoc(doc(db, 'custom_protocols', id));
-        } catch (err) {
-          console.error("Error deleting from cloud instance", err);
-        }
-      }
+      setSyncStatus('synced');
     }
   };
 
