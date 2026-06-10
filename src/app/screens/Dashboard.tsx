@@ -12,6 +12,54 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole') || 'user';
 
+  // Check if onboarding is completed for standard athlete
+  const activeUserId = localStorage.getItem('userId') || 'local_user';
+  const activeUsername = localStorage.getItem('username') || 'Athlete';
+  
+  const [onboardingData, setOnboardingData] = React.useState({
+    name: activeUsername,
+    age: '',
+    location: '',
+    height: '',
+    weight: '',
+    goal: 'Build Muscle',
+    focus: 'Chest & Arms',
+  });
+
+  const [needsOnboarding, setNeedsOnboarding] = React.useState(() => {
+    if (userRole !== 'user') return false;
+    const saved = localStorage.getItem(`fitx_profile_${activeUserId}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return !parsed.completed;
+      } catch (e) {
+        return true;
+      }
+    }
+    return true;
+  });
+
+  const handleCompleteOnboarding = (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalProfile = {
+      ...onboardingData,
+      email: activeUsername.includes('@') ? activeUsername : `${activeUsername}@simatsfitx.com`,
+      completed: true,
+    };
+    localStorage.setItem(`fitx_profile_${activeUserId}`, JSON.stringify(finalProfile));
+    
+    // Sync with Firebase User Document
+    import('../lib/firebaseHelper').then(({ updateTacticalUser }) => {
+      updateTacticalUser(activeUserId, {
+        username: onboardingData.name,
+        focusWorkout: onboardingData.focus,
+      });
+    }).catch(err => console.warn(err));
+
+    setNeedsOnboarding(false);
+  };
+
   // Persistent Daily Trackers State
   const [protein, setProtein] = React.useState(() => Number(localStorage.getItem('fitx_dash_protein') || '135'));
   const [carbs, setCarbs] = React.useState(() => Number(localStorage.getItem('fitx_dash_carbs') || '180'));
@@ -264,6 +312,143 @@ export default function Dashboard() {
             ))}
           </div>
         </TacticalCard>
+      </div>
+    );
+  }
+
+  if (needsOnboarding && userRole === 'user') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 overflow-y-auto">
+        <div className="w-full max-w-2xl p-6 lg:p-8 rounded-3xl bg-[#08080c] border border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] my-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex p-3 rounded-full bg-cyan-500/10 text-cyan-400 mb-4 animate-bounce">
+              <Sparkles className="w-8 h-8" />
+            </div>
+            <h2 className="font-mono font-bold text-2xl lg:text-3xl text-white tracking-widest uppercase">
+              ATHLETE ONBOARDING
+            </h2>
+            <p className="font-mono text-xs text-cyan-500/60 uppercase mt-1 tracking-wider">
+              Neural-Sync Initialization Protocol
+            </p>
+            <p className="font-mono text-xs text-white/50 mt-4 max-w-md mx-auto">
+              Welcome to SIMATS FitX, athlete. Before accessing the neural command center, you must initialize your tactical athletic profile.
+            </p>
+          </div>
+
+          <form onSubmit={handleCompleteOnboarding} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                  Athlete Display Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={onboardingData.name}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, name: e.target.value })}
+                  placeholder="e.g. Alex Johnson"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                  Age / Birth Year
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={onboardingData.age}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, age: e.target.value })}
+                  placeholder="e.g. 28 years old"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                  HQ Location
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={onboardingData.location}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, location: e.target.value })}
+                  placeholder="e.g. San Francisco, CA"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                  Height (cm)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={onboardingData.height}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, height: e.target.value })}
+                  placeholder="e.g. 182 cm"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                  Target Weight (lbs / kg)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={onboardingData.weight}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, weight: e.target.value })}
+                  placeholder="e.g. 185 lbs"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                  Primary Fitness Goal
+                </label>
+                <select
+                  value={onboardingData.goal}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, goal: e.target.value })}
+                  className="w-full bg-neutral-900 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+                >
+                  <option value="Build Muscle">Build Muscle / Hypertrophy</option>
+                  <option value="Increase Strength">Increase Max Strength</option>
+                  <option value="Improve Endurance">Conditioning & Endurance</option>
+                  <option value="Fat Loss">Body Recomposition / Fat Loss</option>
+                  <option value="Athletic Power">Explosive Athletic Power</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <label className="block font-mono text-[10px] text-cyan-400/70 uppercase tracking-widest mb-1.5">
+                Target Workout Routine Focus
+              </label>
+              <select
+                value={onboardingData.focus}
+                onChange={(e) => setOnboardingData({ ...onboardingData, focus: e.target.value })}
+                className="w-full bg-neutral-900 border border-white/10 rounded-2xl p-3 font-mono text-sm text-white focus:outline-none focus:border-cyan-400/60"
+              >
+                <option value="Back & Shoulders">Day 1: Back & Shoulders Focus</option>
+                <option value="Legs & Abs">Day 3: Legs & Abs Focus</option>
+                <option value="Chest & Arms">Day 5: Chest & Arms Focus</option>
+                <option value="Full Body Conditioning">Full Body Conditioning Focus</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full mt-6 px-6 py-4 rounded-2xl font-mono font-bold transition-all bg-cyan-400 hover:bg-cyan-300 text-black shadow-[0_0_30px_rgba(6,182,212,0.2)] hover:scale-[1.01]"
+            >
+              FINALIZE ATHLETE INITIALIZATION
+            </button>
+          </form>
+        </div>
       </div>
     );
   }

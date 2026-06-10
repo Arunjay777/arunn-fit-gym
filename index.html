@@ -4,11 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SIMATS FitX | Futuristic Fitness Dashboard</title>
+    <meta name="theme-color" content="#00F0FF" />
+    <meta name="description" content="Futuristic Tactical Fitness Dashboard with Bio-Performance Metrics" />
+    
+    <!-- PWA Assets & Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa_icon_192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa_icon_512.png" />
+    <link rel="apple-touch-icon" href="/pwa_icon_192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
     <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('PWA Service Worker registered with scope:', registration.scope);
+            })
+            .catch((err) => {
+              console.warn('PWA Service Worker registration failed:', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
 

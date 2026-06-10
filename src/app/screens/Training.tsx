@@ -6,56 +6,52 @@ import { Dumbbell, Target, TrendingUp, Zap, Plus, Play, X, Check, Clock, Pause }
 import { cn } from '../components/ui/utils';
 
 const workoutData = {
-  1: { // Chest
-    title: 'CHEST ANNIHILATION',
+  1: {
+    title: 'DAY 1: BACK & SHOULDERS WARFARE',
     exercises: [
-      { name: 'Barbell Bench Press', sets: 4, reps: '8-10', weight: '225 lbs', rest: 90 },
-      { name: 'Incline Dumbbell Press', sets: 3, reps: '10-12', weight: '80 lbs', rest: 75 },
-      { name: 'Cable Flyes', sets: 3, reps: '12-15', weight: '40 lbs', rest: 60 },
-      { name: 'Dips', sets: 3, reps: '10-12', weight: 'Bodyweight', rest: 75 },
-      { name: 'Push-ups', sets: 3, reps: 'To Failure', weight: 'Bodyweight', rest: 45 },
-    ]
-  },
-  2: { // Legs
-    title: 'LEG DEVASTATION',
-    exercises: [
-      { name: 'Barbell Squat', sets: 5, reps: '5-8', weight: '315 lbs', rest: 120 },
-      { name: 'Romanian Deadlift', sets: 4, reps: '8-10', weight: '225 lbs', rest: 90 },
-      { name: 'Leg Press', sets: 4, reps: '12-15', weight: '450 lbs', rest: 75 },
-      { name: 'Walking Lunges', sets: 3, reps: '12/leg', weight: '50 lbs', rest: 60 },
-      { name: 'Leg Curls', sets: 3, reps: '12-15', weight: '90 lbs', rest: 60 },
-      { name: 'Calf Raises', sets: 4, reps: '15-20', weight: '180 lbs', rest: 45 },
-    ]
-  },
-  3: { // Back
-    title: 'BACK WARFARE',
-    exercises: [
-      { name: 'Deadlift', sets: 4, reps: '5-8', weight: '405 lbs', rest: 120 },
-      { name: 'Pull-ups', sets: 4, reps: '8-12', weight: 'Bodyweight', rest: 90 },
       { name: 'Barbell Rows', sets: 4, reps: '8-10', weight: '185 lbs', rest: 90 },
-      { name: 'Lat Pulldowns', sets: 3, reps: '10-12', weight: '150 lbs', rest: 75 },
-      { name: 'Cable Rows', sets: 3, reps: '12-15', weight: '140 lbs', rest: 60 },
-      { name: 'Face Pulls', sets: 3, reps: '15-20', weight: '60 lbs', rest: 60 },
+      { name: 'Pull Downs', sets: 4, reps: '10-12', weight: '150 lbs', rest: 75 },
+      { name: 'Dumbbell Rows', sets: 3, reps: '10-12', weight: '70 lbs', rest: 75 },
+      { name: 'Hyperextensions', sets: 3, reps: '12-15', weight: 'Bodyweight', rest: 60 },
+      { name: 'Barbell Overhead Presses', sets: 4, reps: '6-8', weight: '135 lbs', rest: 90 },
+      { name: 'Side Raises', sets: 3, reps: '12-15', weight: '25 lbs', rest: 60 },
+      { name: 'Bent Rear Side Raises', sets: 3, reps: '12-15', weight: '20 lbs', rest: 60 },
+      { name: 'Forward Raises', sets: 3, reps: '12-15', weight: '20 lbs', rest: 60 },
     ]
   },
-  4: { // Arms
-    title: 'ARM ASSAULT',
+  2: {
+    title: 'DAY 3: LEGS & ABS DEVASTATION',
     exercises: [
-      { name: 'Barbell Curls', sets: 4, reps: '8-10', weight: '95 lbs', rest: 60 },
-      { name: 'Skull Crushers', sets: 4, reps: '8-10', weight: '75 lbs', rest: 60 },
-      { name: 'Hammer Curls', sets: 3, reps: '10-12', weight: '40 lbs', rest: 60 },
-      { name: 'Tricep Pushdowns', sets: 3, reps: '12-15', weight: '70 lbs', rest: 60 },
-      { name: 'Preacher Curls', sets: 3, reps: '10-12', weight: '60 lbs', rest: 60 },
-      { name: 'Overhead Extensions', sets: 3, reps: '12-15', weight: '50 lbs', rest: 60 },
+      { name: 'Barbell Squats', sets: 4, reps: '6-8', weight: '275 lbs', rest: 120 },
+      { name: 'Leg Presses', sets: 3, reps: '10-12', weight: '450 lbs', rest: 90 },
+      { name: 'Leg Extensions', sets: 3, reps: '12-15', weight: '150 lbs', rest: 60 },
+      { name: 'Legged Dead Lifts', sets: 3, reps: '10-12', weight: '185 lbs', rest: 90 },
+      { name: 'Seated Calf Raises', sets: 3, reps: '15-20', weight: '110 lbs', rest: 45 },
+      { name: 'Standing Calf Raises', sets: 3, reps: '15-20', weight: '150 lbs', rest: 45 },
+      { name: 'Abdominal Crunches', sets: 4, reps: '15-20', weight: 'Bodyweight', rest: 45 },
+      { name: 'Leg Raises', sets: 3, reps: '12-15', weight: 'Bodyweight', rest: 60 },
     ]
   },
+  3: {
+    title: 'DAY 5: CHEST & ARMS ANNIHILATION',
+    exercises: [
+      { name: 'Bench Presses', sets: 4, reps: '8-10', weight: '225 lbs', rest: 90 },
+      { name: 'Incline Bench Presses', sets: 3, reps: '8-10', weight: '185 lbs', rest: 90 },
+      { name: 'Dumbbell Presses', sets: 3, reps: '10-12', weight: '75 lbs', rest: 75 },
+      { name: 'Incline Dumbbell Flyes', sets: 3, reps: '12-15', weight: '40 lbs', rest: 60 },
+      { name: 'Tricep Extensions', sets: 3, reps: '10-12', weight: '80 lbs', rest: 65 },
+      { name: 'Triceps Pull Downs', sets: 3, reps: '12-15', weight: '65 lbs', rest: 60 },
+      { name: 'Barbell Curls', sets: 3, reps: '10-12', weight: '95 lbs', rest: 65 },
+      { name: 'Preacher Curls', sets: 3, reps: '10-12', weight: '75 lbs', rest: 65 },
+      { name: 'Hammer Curls', sets: 3, reps: '10-12', weight: '35 lbs', rest: 60 },
+    ]
+  }
 };
 
 const workouts = [
-  { id: 1, title: 'CHEST ANNIHILATION', type: 'HYPERTROPHY', duration: '75 min', exercises: 8, volume: '18.2K lbs', status: 'scheduled', time: '06:00' },
-  { id: 2, title: 'LEG DEVASTATION', type: 'STRENGTH', duration: '90 min', exercises: 6, volume: '24.8K lbs', status: 'active', time: 'NOW' },
-  { id: 3, title: 'BACK WARFARE', type: 'POWER', duration: '80 min', exercises: 7, volume: '21.5K lbs', status: 'scheduled', time: '16:00' },
-  { id: 4, title: 'ARM ASSAULT', type: 'HYPERTROPHY', duration: '60 min', exercises: 10, volume: '12.4K lbs', status: 'scheduled', time: '18:00' },
+  { id: 1, title: 'DAY 1: BACK & SHOULDERS', type: 'STRENGTH', duration: '80 min', exercises: 8, volume: '22.4K lbs', status: 'active', time: 'MON 06:00' },
+  { id: 2, title: 'DAY 3: LEGS & ABS', type: 'POWER', duration: '85 min', exercises: 8, volume: '28.1K lbs', status: 'scheduled', time: 'WED 06:00' },
+  { id: 3, title: 'DAY 5: CHEST & ARMS', type: 'HYPERTROPHY', duration: '90 min', exercises: 9, volume: '24.6K lbs', status: 'scheduled', time: 'FRI 06:00' },
 ];
 
 export default function Training() {

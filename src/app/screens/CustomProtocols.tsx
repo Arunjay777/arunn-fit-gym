@@ -159,12 +159,21 @@ export default function CustomProtocols() {
     setActiveProtocol(mergedList[0]);
 
     // 2. Check current firebase auth state
+    const localUid = localStorage.getItem('userId');
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setIsAuthenticated(true);
         setCurrentUserId(user.uid);
-        // Fetch custom firestore records dynamically
-        fetchFirestoreProtocols(user.uid, mergedList);
+        // Fetch custom firestore records dynamically if not a local bypass user
+        if (user.uid && !user.uid.endsWith('_local')) {
+          fetchFirestoreProtocols(user.uid, mergedList);
+        } else {
+          setSyncStatus('synced');
+        }
+      } else if (localUid) {
+        setIsAuthenticated(true);
+        setCurrentUserId(localUid);
+        setSyncStatus('synced');
       } else {
         setIsAuthenticated(false);
         setCurrentUserId(null);
@@ -269,8 +278,8 @@ export default function CustomProtocols() {
     const customs = finalProtocols.filter(p => p.isCustom);
     localStorage.setItem('fitx_custom_protocols', JSON.stringify(customs));
 
-    // Proactively upload to firestore if logged in
-    if (isAuthenticated && currentUserId) {
+    // Proactively upload to firestore if logged in and not local test bypass
+    if (isAuthenticated && currentUserId && !currentUserId.endsWith('_local')) {
       const docRef = doc(db, 'custom_protocols', newProtocol.id);
       setDoc(docRef, {
         uid: currentUserId,
@@ -288,6 +297,8 @@ export default function CustomProtocols() {
       }).catch(() => {
         setSyncStatus('error');
       });
+    } else if (currentUserId && currentUserId.endsWith('_local')) {
+      setSyncStatus('synced');
     }
   };
 
@@ -307,7 +318,7 @@ export default function CustomProtocols() {
       }
 
       // Sync delete with firestore
-      if (isAuthenticated) {
+      if (isAuthenticated && currentUserId && !currentUserId.endsWith('_local')) {
         try {
           await deleteDoc(doc(db, 'custom_protocols', id));
         } catch (err) {

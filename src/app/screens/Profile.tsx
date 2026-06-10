@@ -1,19 +1,46 @@
 import React, { useState, useRef } from 'react';
 import TacticalHeader from '../components/TacticalHeader';
 import TacticalCard from '../components/TacticalCard';
-import { User, Mail, Calendar, MapPin, Award, TrendingUp, Dumbbell, Target, Camera, Edit, Save, X } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, Award, TrendingUp, Dumbbell, Target, Camera, Edit, Save, X, Scale, Ruler } from 'lucide-react';
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [profileData, setProfileData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex@simatsfitx.com',
-    age: '28 years old',
-    location: 'San Francisco, CA',
+  const activeUserId = localStorage.getItem('userId') || 'local_user';
+  const activeUsername = localStorage.getItem('username') || 'Athlete';
+  const activeEmail = activeUsername.includes('@') ? activeUsername : `${activeUsername}@simatsfitx.com`;
+
+  const [profileData, setProfileData] = useState(() => {
+    const saved = localStorage.getItem(`fitx_profile_${activeUserId}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          name: parsed.name || activeUsername,
+          email: parsed.email || activeEmail,
+          age: parsed.age || '28 years old',
+          location: parsed.location || 'San Francisco, CA',
+          height: parsed.height || '182 cm',
+          weight: parsed.weight || '185 lbs',
+          goal: parsed.goal || 'Build Muscle',
+        };
+      } catch (e) {
+        // fallback
+      }
+    }
+    return {
+      name: activeUsername,
+      email: activeEmail,
+      age: '28 years old',
+      location: 'San Francisco, CA',
+      height: '182 cm',
+      weight: '185 lbs',
+      goal: 'Build Muscle',
+    };
   });
+
   const stats = [
     { icon: Dumbbell, label: 'Workouts Completed', value: '247', color: '#00D4FF' },
     { icon: Award, label: 'Achievements', value: '42', color: '#F59E0B' },
@@ -48,6 +75,16 @@ export default function Profile() {
 
   const handleSave = () => {
     setIsEditing(false);
+    const updated = { ...profileData, completed: true };
+    localStorage.setItem(`fitx_profile_${activeUserId}`, JSON.stringify(updated));
+    
+    // Sync with Firebase User collection
+    import('../lib/firebaseHelper').then(({ updateTacticalUser }) => {
+      updateTacticalUser(activeUserId, {
+        username: updated.name,
+        focusWorkout: updated.goal === 'Build Muscle' ? 'Hypertrophy Chest' : 'All-Around Performance'
+      });
+    }).catch(err => console.warn(err));
   };
 
   return (
@@ -132,11 +169,11 @@ export default function Profile() {
                   type="email"
                   value={profileData.email}
                   onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded"
+                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded font-bold"
                   style={{ color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)' }}
                 />
               ) : (
-                <span className="font-mono text-sm" style={{ color: '#00D4FF' }}>{profileData.email}</span>
+                <span className="font-mono text-sm font-bold" style={{ color: '#00D4FF' }}>{profileData.email}</span>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -146,11 +183,11 @@ export default function Profile() {
                   type="text"
                   value={profileData.age}
                   onChange={(e) => setProfileData({ ...profileData, age: e.target.value })}
-                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded"
+                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded font-bold"
                   style={{ color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)' }}
                 />
               ) : (
-                <span className="font-mono text-sm" style={{ color: '#00D4FF' }}>{profileData.age}</span>
+                <span className="font-mono text-sm font-bold" style={{ color: '#00D4FF' }}>{profileData.age}</span>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -160,11 +197,60 @@ export default function Profile() {
                   type="text"
                   value={profileData.location}
                   onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded"
+                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded font-bold"
                   style={{ color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)' }}
                 />
               ) : (
-                <span className="font-mono text-sm" style={{ color: '#00D4FF' }}>{profileData.location}</span>
+                <span className="font-mono text-sm font-bold" style={{ color: '#00D4FF' }}>{profileData.location}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Ruler className="w-4 h-4" style={{ color: 'rgba(0, 212, 255, 0.6)' }} />
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profileData.height}
+                  onChange={(e) => setProfileData({ ...profileData, height: e.target.value })}
+                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded font-bold"
+                  style={{ color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)' }}
+                  placeholder="Height e.g. 182 cm"
+                />
+              ) : (
+                <span className="font-mono text-sm font-bold" style={{ color: '#00D4FF' }}>{profileData.height || '182 cm'}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Scale className="w-4 h-4" style={{ color: 'rgba(0, 212, 255, 0.6)' }} />
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profileData.weight}
+                  onChange={(e) => setProfileData({ ...profileData, weight: e.target.value })}
+                  className="flex-1 font-mono text-sm bg-transparent outline-none p-1 rounded font-bold"
+                  style={{ color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)' }}
+                  placeholder="Weight e.g. 185 lbs"
+                />
+              ) : (
+                <span className="font-mono text-sm font-bold" style={{ color: '#00D4FF' }}>{profileData.weight || '185 lbs'}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Target className="w-4 h-4" style={{ color: 'rgba(0, 212, 255, 0.6)' }} />
+              {isEditing ? (
+                <select
+                  value={profileData.goal}
+                  onChange={(e) => setProfileData({ ...profileData, goal: e.target.value })}
+                  className="flex-1 font-mono text-sm bg-neutral-900 outline-none p-1 rounded text-cyan-400 font-bold"
+                  style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}
+                >
+                  <option value="Build Muscle">Build Muscle</option>
+                  <option value="Increase Strength">Increase Strength</option>
+                  <option value="Improve Endurance">Improve Endurance</option>
+                  <option value="Fat Loss">Fat Loss</option>
+                  <option value="Athletic Power">Athletic Power</option>
+                </select>
+              ) : (
+                <span className="font-mono text-sm font-bold text-cyan-400">{profileData.goal || 'Build Muscle'}</span>
               )}
             </div>
           </div>

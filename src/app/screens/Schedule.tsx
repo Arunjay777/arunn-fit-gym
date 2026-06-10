@@ -21,40 +21,38 @@ export default function Schedule() {
     {
       day: 0,
       workouts: [
-        { time: '06:00', title: 'CHEST & TRICEPS', duration: '75 min', type: 'strength', color: '#FF3366' },
+        { time: '06:00', title: 'DAY 1: BACK & SHOULDERS', duration: '80 min', type: 'strength', color: '#00FF88' },
         { time: '18:00', title: 'CARDIO SESSION', duration: '30 min', type: 'cardio', color: '#00D4FF' },
       ]
     },
     {
       day: 1,
       workouts: [
-        { time: '06:00', title: 'BACK & BICEPS', duration: '70 min', type: 'strength', color: '#00FF88' },
+        { time: '08:00', title: 'ACTIVE RECOVERY', duration: '45 min', type: 'recovery', color: '#10B981' },
       ]
     },
     {
       day: 2,
       workouts: [
-        { time: '06:00', title: 'LEGS', duration: '80 min', type: 'strength', color: '#F59E0B' },
-        { time: '12:00', title: 'MOBILITY WORK', duration: '20 min', type: 'mobility', color: '#10B981' },
+        { time: '06:00', title: 'DAY 3: LEGS & ABS', duration: '85 min', type: 'strength', color: '#F59E0B' },
       ]
     },
     {
       day: 3,
       workouts: [
-        { time: '06:00', title: 'SHOULDERS', duration: '60 min', type: 'strength', color: '#3B82F6' },
+        { time: '12:00', title: 'MOBILITY WORK', duration: '20 min', type: 'mobility', color: '#10B981' },
       ]
     },
     {
       day: 4,
       workouts: [
-        { time: '06:00', title: 'FULL BODY', duration: '65 min', type: 'strength', color: '#A855F7' },
-        { time: '18:00', title: 'HIIT TRAINING', duration: '25 min', type: 'cardio', color: '#00D4FF' },
+        { time: '06:00', title: 'DAY 5: CHEST & ARMS', duration: '90 min', type: 'strength', color: '#FF3366' },
       ]
     },
     {
       day: 5,
       workouts: [
-        { time: '08:00', title: 'ACTIVE RECOVERY', duration: '45 min', type: 'recovery', color: '#10B981' },
+        { time: '18:00', title: 'HIIT TRAINING', duration: '25 min', type: 'cardio', color: '#00D4FF' },
       ]
     },
     {
@@ -105,40 +103,38 @@ export default function Schedule() {
     {
       day: 0,
       workouts: [
-        { time: '06:00', title: 'CHEST & TRICEPS', duration: '75 min', type: 'strength', color: '#FF3366' },
+        { time: '06:00', title: 'DAY 1: BACK & SHOULDERS', duration: '80 min', type: 'strength', color: '#00FF88' },
         { time: '18:00', title: 'CARDIO SESSION', duration: '30 min', type: 'cardio', color: '#00D4FF' },
       ]
     },
     {
       day: 1,
       workouts: [
-        { time: '06:00', title: 'BACK & BICEPS', duration: '70 min', type: 'strength', color: '#00FF88' },
+        { time: '08:00', title: 'ACTIVE RECOVERY', duration: '45 min', type: 'recovery', color: '#10B981' },
       ]
     },
     {
       day: 2,
       workouts: [
-        { time: '06:00', title: 'LEGS', duration: '80 min', type: 'strength', color: '#F59E0B' },
-        { time: '12:00', title: 'MOBILITY WORK', duration: '20 min', type: 'mobility', color: '#10B981' },
+        { time: '06:00', title: 'DAY 3: LEGS & ABS', duration: '85 min', type: 'strength', color: '#F59E0B' },
       ]
     },
     {
       day: 3,
       workouts: [
-        { time: '06:00', title: 'SHOULDERS', duration: '60 min', type: 'strength', color: '#3B82F6' },
+        { time: '12:00', title: 'MOBILITY WORK', duration: '20 min', type: 'mobility', color: '#10B981' },
       ]
     },
     {
       day: 4,
       workouts: [
-        { time: '06:00', title: 'FULL BODY', duration: '65 min', type: 'strength', color: '#A855F7' },
-        { time: '18:00', title: 'HIIT TRAINING', duration: '25 min', type: 'cardio', color: '#00D4FF' },
+        { time: '06:00', title: 'DAY 5: CHEST & ARMS', duration: '90 min', type: 'strength', color: '#FF3366' },
       ]
     },
     {
       day: 5,
       workouts: [
-        { time: '08:00', title: 'ACTIVE RECOVERY', duration: '45 min', type: 'recovery', color: '#10B981' },
+        { time: '18:00', title: 'HIIT TRAINING', duration: '25 min', type: 'cardio', color: '#00D4FF' },
       ]
     },
     {
@@ -150,10 +146,10 @@ export default function Schedule() {
   ];
 
   const upcomingWorkouts = [
-    { date: 'Today', time: '18:00', title: 'CARDIO SESSION', duration: '30 min', color: '#00D4FF' },
-    { date: 'Tomorrow', time: '06:00', title: 'BACK & BICEPS', duration: '70 min', color: '#00FF88' },
-    { date: 'May 14', time: '06:00', title: 'LEGS', duration: '80 min', color: '#F59E0B' },
-    { date: 'May 15', time: '06:00', title: 'SHOULDERS', duration: '60 min', color: '#3B82F6' },
+    { date: 'Today', time: '06:00', title: 'DAY 1: BACK & SHOULDERS', duration: '80 min', color: '#00FF88' },
+    { date: 'Tomorrow', time: '18:05', title: 'CARDIO SESSION', duration: '30 min', color: '#00D4FF' },
+    { date: 'Wednesday', time: '06:00', title: 'DAY 3: LEGS & ABS', duration: '85 min', color: '#F59E0B' },
+    { date: 'Friday', time: '06:00', title: 'DAY 5: CHEST & ARMS', duration: '90 min', color: '#FF3366' },
   ];
 
   const weeklyStats = [
@@ -211,7 +207,7 @@ export default function Schedule() {
 
             <div className="flex lg:grid lg:grid-cols-7 gap-3 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 scrollbar-hide snap-x">
               {weekDays.map((day, index) => {
-                const daySchedule = schedule[index];
+                const daySchedule = scheduleData[index];
                 return (
                   <div key={day} className="min-w-[140px] lg:min-w-0 snap-start">
                     <div className="text-center mb-3 p-2 rounded-xl bg-white/5 lg:bg-transparent border border-white/5 lg:border-0">
@@ -274,12 +270,11 @@ export default function Schedule() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
-                { name: 'CHEST DAY', color: '#FF3366', exercises: 6 },
-                { name: 'LEG DAY', color: '#00FF88', exercises: 7 },
-                { name: 'BACK DAY', color: '#00D4FF', exercises: 6 },
-                { name: 'SHOULDER DAY', color: '#F59E0B', exercises: 5 },
-                { name: 'ARM DAY', color: '#3B82F6', exercises: 6 },
-                { name: 'FULL BODY', color: '#A855F7', exercises: 8 },
+                { name: 'BACK & SHOULDERS', color: '#00FF88', exercises: 8 },
+                { name: 'LEGS & ABS', color: '#F59E0B', exercises: 8 },
+                { name: 'CHEST & ARMS', color: '#FF3366', exercises: 9 },
+                { name: 'ACTIVE RECOVERY', color: '#10B981', exercises: 3 },
+                { name: 'HIIT CARDIO', color: '#00D4FF', exercises: 5 },
               ].map((template) => (
                 <button
                   key={template.name}

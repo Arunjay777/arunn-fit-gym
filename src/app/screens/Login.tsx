@@ -598,23 +598,47 @@ export default function Login() {
                       {loginError.includes('OPERATION-NOT-ALLOWED') && (
                         <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs font-sans text-amber-300 leading-normal space-y-3">
                           <p className="font-bold uppercase tracking-wider text-[10px] text-amber-400 flex items-center gap-1">
-                            <span>⚡ How to Enable Email/Password Auth:</span>
+                            <span>⚡ How to Enable Authentication Providers:</span>
                           </p>
-                          <ol className="list-decimal pl-4 space-y-1 text-[11px] text-white/70">
-                            <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-cyan-400 hover:text-cyan-300">Firebase Console</a>.</li>
-                            <li>Select your project (<strong className="font-mono text-[10px] bg-white/10 px-1 rounded text-white">spheric-pact-38gvj</strong>).</li>
-                            <li>Navigate to <strong>Authentication</strong> &rarr; <strong>Sign-in method</strong> tab.</li>
-                            <li>Click <strong>Add new provider</strong>, select <strong>Email/Password</strong>, check <strong>Enable</strong>, and click <strong>Save</strong>.</li>
-                          </ol>
+                          <p className="text-[10px] text-white/70">
+                            Firebase returned <code className="text-rose-400 font-mono font-bold">auth/operation-not-allowed</code> because the requested sign-in provider is disabled in your cloud project. Follow the appropriate procedure to activate:
+                          </p>
                           
+                          <div className="grid grid-cols-1 gap-3 pt-1">
+                            {/* Google Auth Steps */}
+                            <div className="p-2.5 rounded-lg bg-white/5 border border-white/5 space-y-1.5">
+                              <span className="font-bold text-[9.5px] text-cyan-400 uppercase tracking-widest block">For Google Sign-In:</span>
+                              <ol className="list-decimal pl-4 space-y-1 text-[10.5px] text-white/70">
+                                <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-cyan-400 hover:text-cyan-300 font-bold">Firebase Console</a>.</li>
+                                <li>Select your project (<strong className="font-mono text-[9px] bg-white/10 px-1 rounded text-white font-bold">spheric-pact-38gvj</strong>).</li>
+                                <li>Navigate to <strong>Authentication &rarr; Sign-in method</strong>.</li>
+                                <li>Click <strong>Add new provider</strong>, select <strong>Google</strong>, turn on <strong>Enable</strong>, specify a project support email, and click <strong>Save</strong>.</li>
+                              </ol>
+                            </div>
+
+                            {/* Email/Password Steps */}
+                            <div className="p-2.5 rounded-lg bg-white/5 border border-white/5 space-y-1.5">
+                              <span className="font-bold text-[9.5px] text-emerald-400 uppercase tracking-widest block">For Username/Password Auth:</span>
+                              <ol className="list-decimal pl-4 space-y-1 text-[10.5px] text-white/70">
+                                <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-emerald-400 hover:text-emerald-300 font-bold">Firebase Console</a>.</li>
+                                <li>Go to <strong>Authentication &rarr; Sign-in method</strong>.</li>
+                                <li>Click <strong>Add new provider</strong>, choose <strong>Email/Password</strong>, toggle <strong>Enable</strong>, and click <strong>Save</strong>.</li>
+                              </ol>
+                            </div>
+                          </div>
+
                           <div className="pt-2 border-t border-white/5 space-y-2">
+                            <p className="text-[10.5px] text-amber-200">
+                              ⚠️ <strong>Browser Iframe Notice:</strong> Google Sign-In popups may be blocked or partition-restricted inside the embedded iframe. For standard popups to work correctly, click the "Open in New Tab" icon on the top-right of your preview frame to run outside the iframe.
+                            </p>
                             <p className="text-[10px] text-white/50">
-                              💡 <strong>Immediate Developer Bypass:</strong> Don't want to configure Firebase right now? Click the button below to start exploring the full functional app instantly using a secure local sandbox account!
+                              💡 <strong>Immediate Developer Bypass:</strong> Don't want to configure Firebase console right now? Click the button below to start exploring the full functional app instantly using a secure local sandbox account!
                             </p>
                             <button
                               type="button"
                               onClick={handleOfflineBypass}
                               className="w-full py-2.5 px-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-sans font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                              id="bypass-login-btn"
                             >
                               <Zap className="w-3.5 h-3.5 fill-black" />
                               <span>Bypass & Launch App Instantly</span>
