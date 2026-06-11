@@ -4,7 +4,7 @@ import TacticalCard from '../components/TacticalCard';
 import { 
   Flame, Zap, Heart, Target, Dumbbell, TrendingUp, Activity, Play, Camera, 
   Users, AlertCircle, ShieldAlert, Clipboard, Utensils, Star, Award, Shield, ArrowRight,
-  Plus, RotateCcw, Sparkles, Video
+  Plus, RotateCcw, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -489,13 +489,6 @@ export default function Dashboard() {
               >
                 <Camera className="w-5 h-5" />
                 AI TRACKER
-              </button>
-              <button
-                onClick={() => navigate('/form')}
-                className="px-8 py-4 rounded-2xl font-mono font-bold transition-all bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 hover:bg-cyan-500/20 flex items-center justify-center gap-3 backdrop-blur-md"
-              >
-                <Video className="w-5 h-5" />
-                FORM CHECK
               </button>
             </div>
           </div>

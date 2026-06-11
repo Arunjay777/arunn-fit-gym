@@ -44,7 +44,6 @@ export { default as Deload } from './screens/Deload';
 export { default as PeakWeek } from './screens/PeakWeek';
 export { default as RestDay } from './screens/RestDay';
 export { default as InjuryLog } from './screens/InjuryLog';
-export { default as FormCheck } from './screens/FormCheck';
 export { default as PersonalRecords } from './screens/PersonalRecords';
 export { default as Milestones } from './screens/Milestones';
 export { default as Challenges } from './screens/Challenges';

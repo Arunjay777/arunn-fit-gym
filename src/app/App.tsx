@@ -50,7 +50,6 @@ import Deload from './screens/Deload';
 import PeakWeek from './screens/PeakWeek';
 import RestDay from './screens/RestDay';
 import InjuryLog from './screens/InjuryLog';
-import FormCheck from './screens/FormCheck';
 import PersonalRecords from './screens/PersonalRecords';
 import Milestones from './screens/Milestones';
 import Challenges from './screens/Challenges';
@@ -207,7 +206,6 @@ export default function App() {
           <Route path="/phases/peak" element={<ProtectedRoute><PeakWeek /></ProtectedRoute>} />
           <Route path="/phases/rest" element={<ProtectedRoute><RestDay /></ProtectedRoute>} />
           <Route path="/injury" element={<ProtectedRoute><InjuryLog /></ProtectedRoute>} />
-          <Route path="/form" element={<ProtectedRoute><FormCheck /></ProtectedRoute>} />
 
           {/* Achievement & Social Routes */}
           <Route path="/records" element={<ProtectedRoute><PersonalRecords /></ProtectedRoute>} />
