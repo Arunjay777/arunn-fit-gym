@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock, Library } from 'lucide-react';
+import { Shield, Target, Activity, Zap, TrendingUp, User, Settings, Brain, Headphones, Dumbbell, Heart, BarChart3, Calendar, Award, Clock, Camera, LogOut, Utensils, Lock, Library, Video } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import FitXLogo from './FitXLogo';
 
@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { icon: Zap, label: 'Command', path: '/dashboard', category: 'core' },
   { icon: Target, label: 'Mission', path: '/mission' },
   { icon: Camera, label: 'Rep Counter', path: '/rep-counter' },
+  { icon: Video, label: 'Form Check', path: '/form' },
   { icon: Activity, label: 'Vitals', path: '/vitals' },
   { icon: Dumbbell, label: 'Training', path: '/training' },
   { icon: Utensils, label: 'Diet Plan', path: '/diet-plan' },
