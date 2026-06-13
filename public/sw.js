@@ -1,10 +1,10 @@
 const CACHE_NAME = "fitx-cache-v2";
 const ASSETS_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/pwa_icon_192.png",
-  "/pwa_icon_512.png"
+  "./",
+  "index.html",
+  "manifest.json",
+  "pwa_icon_192.png",
+  "pwa_icon_512.png"
 ];
 
 // Install Event
@@ -68,7 +68,7 @@ self.addEventListener("fetch", (event) => {
             return cachedResponse;
           }
           // Default offline index fallback
-          return caches.match("/");
+          return caches.match("./");
         });
       })
   );
