@@ -1,0 +1,14 @@
+{
+  "name": "selenium-tests",
+  "version": "1.0.0",
+  "description": "SIMATS FitX Selenium E2E Tests",
+  "main": "tests/login.test.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "mocha tests/login.test.js --timeout 30000"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.0.0",
+    "mocha": "^10.0.0"
+  }
+}

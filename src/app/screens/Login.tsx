@@ -727,6 +727,7 @@ export default function Login() {
                   {/* Action submit button */}
                   <button 
                     type="submit" 
+                    id="login-button"
                     className={cn(
                       "w-full py-3.5 rounded-xl font-sans font-bold text-xs uppercase tracking-widest text-black hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden flex items-center justify-center gap-1.5 mt-2 cursor-pointer",
                       activeRole === 'admin' 
