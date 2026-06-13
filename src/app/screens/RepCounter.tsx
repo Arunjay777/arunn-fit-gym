@@ -10,6 +10,7 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
+import { getJointLabelAndAngle, updateTrackerState } from '../lib/repTracker';
 import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -167,12 +168,7 @@ export default function RepCounter() {
     initAI();
   }, []);
 
-  const calculateAngle = (a: any, b: any, c: any) => {
-    const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
-    let angle = Math.abs((radians * 180.0) / Math.PI);
-    if (angle > 180.0) angle = 360 - angle;
-    return angle;
-  };
+
 
   // Draw detected pose lines onto User Camera stream
   const drawPose = useCallback((poses: poseDetection.Pose[]) => {
@@ -245,67 +241,22 @@ export default function RepCounter() {
         
         if (poses.length > 0) {
           const pose = poses[0];
-          let angle = 180;
-          let jointLabel = "";
+          const { jointLabel, angle } = getJointLabelAndAngle(pose, activeEx);
 
-          // Select appropriate biometric coordinates based on the muscle group
-          const muscleLower = activeEx.primaryMuscle.toLowerCase();
-          const targetLower = activeEx.targetJoint.toLowerCase();
-
-          if (targetLower.includes('knee') || muscleLower.includes('quad') || muscleLower.includes('glute') || muscleLower.includes('hamstring')) {
-            const hip = pose.keypoints.find(k => k.name === 'left_hip' || k.name === 'right_hip');
-            const knee = pose.keypoints.find(k => k.name === 'left_knee' || k.name === 'right_knee');
-            const ankle = pose.keypoints.find(k => k.name === 'left_ankle' || k.name === 'right_ankle');
-            if (hip && knee && ankle && (hip.score ?? 0) > 0.4 && (knee.score ?? 0) > 0.4 && (ankle.score ?? 0) > 0.4) {
-              angle = calculateAngle(hip, knee, ankle);
-              jointLabel = "Knee Extension";
-            }
-          } else if (targetLower.includes('elbow') || muscleLower.includes('bicep') || muscleLower.includes('tricep') || muscleLower.includes('lat') || muscleLower.includes('back')) {
-            const shoulder = pose.keypoints.find(k => k.name === 'left_shoulder' || k.name === 'right_shoulder');
-            const elbow = pose.keypoints.find(k => k.name === 'left_elbow' || k.name === 'right_elbow');
-            const wrist = pose.keypoints.find(k => k.name === 'left_wrist' || k.name === 'right_wrist');
-            if (shoulder && elbow && wrist && (shoulder.score ?? 0) > 0.4 && (elbow.score ?? 0) > 0.4 && (wrist.score ?? 0) > 0.4) {
-              angle = calculateAngle(shoulder, elbow, wrist);
-              jointLabel = "Elbow Flexion";
-            }
-          } else {
-            // Standard Spine / Hip Core flexion
-            const shoulder = pose.keypoints.find(k => k.name === 'left_shoulder' || k.name === 'right_shoulder');
-            const hip = pose.keypoints.find(k => k.name === 'left_hip' || k.name === 'right_hip');
-            const knee = pose.keypoints.find(k => k.name === 'left_knee' || k.name === 'right_knee');
-            if (shoulder && hip && knee && (shoulder.score ?? 0) > 0.4 && (hip.score ?? 0) > 0.4 && (knee.score ?? 0) > 0.4) {
-              angle = calculateAngle(shoulder, hip, knee);
-              jointLabel = "Hip Flexion";
-            }
-          }
-
-          if (jointLabel) {
-            setLiveJointAngle(Math.round(angle));
+          if (jointLabel && angle !== null) {
+            setLiveJointAngle(angle);
             setLiveJointName(jointLabel);
 
             // Active tracking logic state machine (rep registered on transition)
             if (isActiveRef.current) {
-              if (jointLabel === "Knee Extension") {
-                if (angle < 115 && statusRef.current !== 'down') {
-                  setStatus('down');
-                } else if (angle > 150 && statusRef.current === 'down') {
-                  setStatus('up');
-                  registerVerifiedRep();
-                }
-              } else if (jointLabel === "Elbow Flexion") {
-                if (angle < 95 && statusRef.current !== 'down') {
-                  setStatus('down');
-                } else if (angle > 145 && statusRef.current === 'down') {
-                  setStatus('up');
-                  registerVerifiedRep();
-                }
-              } else {
-                if (angle < 120 && statusRef.current !== 'down') {
-                  setStatus('down');
-                } else if (angle > 155 && statusRef.current === 'down') {
-                  setStatus('up');
-                  registerVerifiedRep();
-                }
+              const currentState = { status: statusRef.current, reps: 0, sets: 0 };
+              const { nextState, repRegistered } = updateTrackerState(currentState, jointLabel, angle, true);
+              
+              if (nextState.status !== statusRef.current) {
+                setStatus(nextState.status);
+              }
+              if (repRegistered) {
+                registerVerifiedRep();
               }
             }
           } else {
