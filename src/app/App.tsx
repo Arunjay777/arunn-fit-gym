@@ -115,7 +115,7 @@ export default function App() {
     // Intercept localStorage sets to automatically sync client workout completions to Firestore
     const originalSetItem = localStorage.setItem;
     localStorage.setItem = function(...args: any[]) {
-      originalSetItem.apply(this, args as any);
+      originalSetItem.apply(localStorage, args as any);
       const key = args[0];
       const value = args[1];
       if (key === 'custom_workout_history') {

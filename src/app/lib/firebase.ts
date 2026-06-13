@@ -50,7 +50,7 @@ export const auth: any = {
 if (typeof window !== 'undefined') {
   const originalSetItem = localStorage.setItem;
   localStorage.setItem = function (...args: any[]) {
-    originalSetItem.apply(this, args as any);
+    originalSetItem.apply(localStorage, args as any);
     const key = args[0];
     if (key === 'userId' || key === 'username') {
       setTimeout(() => {
@@ -61,7 +61,7 @@ if (typeof window !== 'undefined') {
   };
   const originalRemoveItem = localStorage.removeItem;
   localStorage.removeItem = function (...args: any[]) {
-    originalRemoveItem.apply(this, args as any);
+    originalRemoveItem.apply(localStorage, args as any);
     const key = args[0];
     if (key === 'userId' || key === 'username') {
       setTimeout(() => {
